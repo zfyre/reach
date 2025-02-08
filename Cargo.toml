@@ -1,0 +1,13 @@
+[package]
+name = "WebSearch-CLI"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.28", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
+serde = "1.0.217"
+tabled = "0.18.0"
+dotenv = "0.15.0"
+serde_json = "1.0"

@@ -1,0 +1,9 @@
+
+```bash
+rsearch "What is the meaning of life?" --llm (A flag for if to query an llm or search engine) --model (to select the model for LLM) --engine (to select the search engine!)
+
+```
+
+
+Rendering the links in CLI ?
+how about using the arxive paper finder that I made in python to include it here!, link it with gemini somehow?
