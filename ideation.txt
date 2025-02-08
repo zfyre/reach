@@ -7,3 +7,54 @@ rsearch "What is the meaning of life?" --llm (A flag for if to query an llm or s
 
 Rendering the links in CLI ?
 how about using the arxive paper finder that I made in python to include it here!, link it with gemini somehow?
+
+
+
+
+{
+        
+        // dotenv().ok(); // Reads the .env file
+        // let gemini_api_key = env::var("REACH_GEMINI_API_KEY").expect("Gemini API key is not available");
+        // let google_api_key =
+        //     env::var("REACH_GOOGLE_SEARCH_API_KEY").expect("Google search API key is not available");
+        // let google_search_engine_id = env::var("REACH_GOOGLE_SEARCH_ENGINE_ID")
+        //     .expect("Google search engine ID is not available");
+
+        // // Replace the following as a config command
+        // // std::env::set_var(GOOGLE_SEARCH_API, "AIzaSyDkAFBZX5dD-x8ePw0zpgfaq3QWxNPgA7k");
+        // // std::env::set_var(SEARCH_ENGINE_ID, "a35c7338a6b824947");
+        // // std::env::set_var(GEMINI_API_KEY, "AIzaSyBeRzObKLp1AgW83_K8gcBTWLshVI__miE");
+
+        // // // Using buffer flushing instead of println! for faster and non-repetitive flushing!
+        // // let stdout = io::stdout(); // get the global stdout entity
+        // // let mut handle = stdout.lock(); // acquire a lock on it
+        // // writeln!(handle, "foo: {}", 42); // add `?` if you care about errors here
+
+        let args = Cli::parse();
+        println!("{args:?}");
+        // println!("query: {:?}, llm: {:?}", args.query, args.llm);
+
+        // if args.llm {
+        //     let out = gemini_search(
+        //         &gemini_api_key,
+        //         &args.query
+        //     ).await?;
+        //     println!("{out}");
+        //     Ok(())
+        // } else {
+        //     let out = google_search(
+        //         &google_api_key,
+        //         &google_search_engine_id,
+        //         &args.query,
+        //         &args.ftype,
+        //     )
+        //     .await?;
+
+        //     for val in out {
+        //         println!("{val}\n");
+        //     }
+        //     Ok(())
+        // }
+
+        Ok(())
+}
