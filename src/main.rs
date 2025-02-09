@@ -31,7 +31,7 @@ struct Cli {
     llm: bool,
 
     /// Specify file type for search results (e.g., pdf, doc)
-    #[arg(long, default_value_t = String::from_str("pdf").unwrap(), conflicts_with = "llm")]
+    #[arg(long, default_value_t = String::from_str("").unwrap(), conflicts_with = "llm")]
     ftype: String,
 }
 
