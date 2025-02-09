@@ -58,3 +58,10 @@ how about using the arxive paper finder that I made in python to include it here
 
         Ok(())
 }
+
+REACH!
+
+TODO: 09-02-25 <-> 10-02-25
+
+1. Fix the config thing and build an executable to run!
+2. Introduce the API for Arxive and then use that to make a research a paper kind of pipeline using gemini to refine the query or use it to actually get the papers out of links from google search results!
