@@ -23,7 +23,7 @@
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/reach.git
+   git clone https://github.com/zfyre/reach.git
    cd reach
    ```
 
