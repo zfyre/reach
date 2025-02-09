@@ -23,8 +23,8 @@
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/WebSearch-CLI.git
-   cd WebSearch-CLI
+   git clone https://github.com/yourusername/reach.git
+   cd reach
    ```
 
 2. **Build the Project Ensure you have Rust installed. Then build with Cargo:**
