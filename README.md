@@ -71,9 +71,9 @@
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## OnGoing Issues
--[ ] It could be possible that keeping `""` as default argument to 'ftype' flag in `main.rs` could cause issues, currently checking that. 
--[ ] The display of llm content and google search content is not very pleasing, need to fix that.
--[ ] Need to create a build script to create a binary for the project, and initialze the reach cli for user from crate.io.
--[ ] Need to add the tests and github-workflows for the project.
+- [ ] It could be possible that keeping `""` as default argument to 'ftype' flag in `main.rs` could cause issues, currently checking that. 
+- [ ] The display of llm content and google search content is not very pleasing, need to fix that.
+- [ ] Need to create a build script to create a binary for the project, and initialze the reach cli for user from crate.io.
+- [ ] Need to add the tests and github-workflows for the project.
 
 
