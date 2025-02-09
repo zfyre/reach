@@ -69,7 +69,7 @@ async fn main() -> Result<(), Error> {
             let google_api_key = api_config.get(ApiKeys::Google.as_str()).expect("Google search API key is not available");
             let google_search_engine_id = api_config.get(ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
 
-            println!("query: {:?}, llm: {:?}", args.query, args.llm);
+            // println!("query: {:?}, llm: {:?}", args.query, args.llm);
 
             if args.llm {
                 let out = gemini_search(
