@@ -1,7 +1,11 @@
 [package]
-name = "Reach-CLI"
+name = "reach-cli"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "reach"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.5.28", features = ["derive"] }

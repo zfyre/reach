@@ -3,16 +3,6 @@
 version = 4
 
 [[package]]
-name = "Reach-CLI"
-version = "0.1.0"
-dependencies = [
- "clap",
- "reqwest",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -818,6 +808,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e4dccaaaf89514f546c693ddc140f729f958c247918a13380cccc6078391acc"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "reach-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "reqwest",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

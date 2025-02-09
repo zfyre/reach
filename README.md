@@ -65,3 +65,12 @@
 
 - **Enhanced Query Refinement:**
     - Utilize Gemini LLM to refine user queries further and extract relevant content from search results.
+
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Troubleshooting
+1. It could be possible that keeping `""` as default argument to 'ftype' flag in `main.rs` could cause issues, currently checking that. 
+2. The display of llm content and google search content is not very pleasing, need to fix that.
+
