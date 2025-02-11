@@ -77,7 +77,7 @@ pub enum ApiKeys {
 }//TODO: Maybe use this as a field of ApiConfig??!!
 
 impl ApiKeys {
-    
+    /// Get the key as a string
     pub fn as_str(&self) -> String {
         match self {
             &Self::Google => format!("{}.REACH_GOOGLE_SEARCH_API_KEY", ApiConfig::prefix()),
@@ -87,6 +87,15 @@ impl ApiKeys {
     }
 }
 
+/// The configuration for the API keys
+/// 
+/// * `google_api_key` - Google Search API key
+/// 
+/// * `search_engine_id` - Search Engine ID
+/// 
+/// * `gemini_api_key` - Gemini API key
+/// 
+/// * `show` - Show the current configuration
 #[derive(Parser, Debug)]
 pub struct ApiConfig {
 
@@ -178,13 +187,22 @@ impl ApiConfig {
         Ok(())
     }
 
-    
+    /// Get the prefix for the configuration
     fn prefix() -> String {
         String::from_str("ApiConfig").unwrap()
     }
 }
 
 
+/// The keys that can be configured for Arxiv
+/// 
+/// * `IncludeWords` - Include keywords
+/// 
+/// * `ExcludeWords` - Exclude keywords
+/// 
+/// * `Authors` - Authors
+/// 
+/// * `Categories` - Categories
 #[derive(Debug, Clone, Copy)]
 pub enum ArxivKeys {
     IncludeWords,
@@ -195,6 +213,7 @@ pub enum ArxivKeys {
 
 impl ArxivKeys {
     
+    /// Get the key as a string
     pub fn as_str(&self) -> String {
         match self {
             &Self::IncludeWords => format!("{}.REACH_INCLUDE_WORDS", ArxivConfig::prefix()),
@@ -205,7 +224,17 @@ impl ArxivKeys {
     }
 }
 
-
+/// The configuration for Arxiv
+/// 
+/// * `include_keywords` - Include keywords
+/// 
+/// * `ignore_keywords` - Exclude keywords
+/// 
+/// * `authors` - Authors
+/// 
+/// * `categories` - Categories
+/// 
+/// * `show` - Show the current configuration
 #[derive(Parser, Debug)]
 pub struct ArxivConfig {
 
@@ -227,6 +256,11 @@ pub struct ArxivConfig {
 }
 
 impl ArxivConfig {
+    /// Read the configuration from the file
+    /// 
+    /// # Returns
+    /// 
+    /// * `Result<Vec<(String, Vec<String>)>, Error>` - The result of the operation
     pub fn read_config() -> Result<Vec<(String, Vec<String>)>, Error> {
         let config_path = get_config_path();
         if !config_path.exists() {
@@ -258,6 +292,11 @@ impl ArxivConfig {
             .collect())
     }
 
+    /// Get the configuration from the user
+    /// 
+    /// # Returns
+    /// 
+    /// * `Result<(), Error>` - The result of the operation
     pub fn get_config_from_user() -> Result<(), Error> {
         let mut include_words = String::new();
         let mut exclude_words = String::new();
@@ -296,6 +335,7 @@ impl ArxivConfig {
         Ok(())
     }
 
+    /// Get the prefix for the configuration
     fn prefix() -> String {
         String::from_str("ArxivConfig").unwrap()
     }

@@ -42,7 +42,7 @@ struct Cli {
     #[arg(short = 'a', long = "arxiv", default_value_t = false)]
     ax: bool,
 
-    /// Specify file type for search results (e.g., pdf, doc)
+    /// Specify the maximum number of results to be returned
     #[arg(long, default_value_t = String::from_str("10").unwrap(), requires = "ax")]
     maxres: String,
 
