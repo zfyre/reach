@@ -97,7 +97,7 @@ pub async fn google_search(
 struct ArxivQuery<'a> {
     include_keywords: Vec<String>,
     exclude_keywords: Vec<String>,
-    authors: Vec<String>,
+    _authors: Vec<String>,
     categories: Vec<String>,
     start: &'a str,       // for pagination!
     max_results: &'a str, // ~500
@@ -200,7 +200,7 @@ impl Default for ArxivQuery<'_> {
                 .expect("Gemini API key is not available")
                 .to_owned(),
 
-            authors: default_config
+            _authors: default_config
                 .get(&ArxivKeys::Authors.as_str())
                 .expect("Gemini API key is not available")
                 .to_owned(),
@@ -250,11 +250,11 @@ pub async fn arxive_search(query: Option<&str>, max_results: &str) -> Result<Vec
     Ok(vec!["placeholder".to_string()])
 }
 
+#[cfg(test)]
 mod tests {
-    use super::*;
-
+    use super::arxive_search;
     #[tokio::test]
     async fn check_arxive_search() {
-        let res = arxive_search(None, "10").await;
+        let _res = arxive_search(None, "10").await;
     }
 }
