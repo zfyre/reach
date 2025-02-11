@@ -42,7 +42,7 @@ async fn main() -> Result<(), Error> {
     // println!("{args:?}");
 
     match args.command {
-        Some(Commands::Config(config)) => {
+        Some(Commands::ApiConfig(config)) => { // Change Api Config!
             if config.show {
                 let config_list = ApiConfig::read_config()?;
                 if config_list.is_empty() {
@@ -61,18 +61,36 @@ async fn main() -> Result<(), Error> {
 
             Ok(())
         }
-        None => {
+        Some(Commands::ArxivConfig(config)) => { // Change Arxiv config
+            if config.show {
+                let config_list = ArxivConfig::read_config()?;
+                if config_list.is_empty() {
+                    println!("No configuration found.");
+                } else {
+                    println!("Current configuration:");
+                    for (key, value) in config_list {
+                        println!("{}={:?}", key, value);
+                    }
+                }
+                return Ok(());
+            }
+
+            // Prompt the user to input the config (essentially API-Keys)
+            ArxivConfig::get_config_from_user()?;
+            Ok(())
+        }
+        None => { // Apply Proper Search
 
             let api_config: HashMap<String, String> = ApiConfig::read_config()?.into_iter().collect();
 
-            let gemini_api_key = api_config.get(ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
-            let google_api_key = api_config.get(ApiKeys::Google.as_str()).expect("Google search API key is not available");
-            let google_search_engine_id = api_config.get(ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
+            let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
+            let google_api_key = api_config.get(&ApiKeys::Google.as_str()).expect("Google search API key is not available");
+            let google_search_engine_id = api_config.get(&ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
 
             // println!("query: {:?}, llm: {:?}", args.query, args.llm);
 
             if args.llm {
-                let out = gemini_search(
+                let out = gemini_query(
                     &gemini_api_key,
                     &args.query.expect("No query provided!")
                 ).await?;

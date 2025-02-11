@@ -1,7 +1,10 @@
 use reqwest::Client;
 use serde_json::json;
 use serde_json::Value;
+use std::collections::HashMap;
 
+use crate::config::ArxivConfig;
+use crate::config::ArxivKeys;
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -21,8 +24,7 @@ impl From<std::io::Error> for Error {
     }
 }
 
-
-pub async fn gemini_search(gemini_api_key: &str, query: &str) -> Result<String, Error> {
+pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<String, Error> {
     let gemini_request_url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     );
@@ -59,8 +61,11 @@ pub async fn google_search(
             ("cx", search_engine_id),
             ("q", query),
             ("fileType", ftype),
+            ("num", "10"),
+            // ("start", "0"), // for pagination!v-> Move in gaps of 10 becuase the result shows 10 links per request
+            // ("exactTerms", "BJP"), // Can be used to search about a author!
+            // ("excludeTerms", "elections Modi ... ... ...") // Can directly use this for arxiver!
             // ("dateRestrict", "2016-01-01:m1".to_string()),
-            // ("start", "11".to_string()), // for pagination!
             // ("searchType", "image".to_string()),
             // ("lr", "lang_en".to_string()),
             // ("gl", "US".to_string())
@@ -85,5 +90,165 @@ pub async fn google_search(
         Ok(results)
     } else {
         Ok(vec!["No Response!, Try rephrasing your query.".to_string()])
+    }
+}
+
+#[derive(Debug)]
+struct ArxivQuery<'a> {
+    include_keywords: Vec<String>,
+    exclude_keywords: Vec<String>,
+    authors: Vec<String>,
+    categories: Vec<String>,
+    start: &'a str,       // for pagination!
+    max_results: &'a str, // ~500
+    sort_by: &'a str,     // "relevance", "lastUpdatedDate"
+    sort_order: &'a str,  // 'ascending', 'descending'
+
+                          // id_list: Vstr<'a>,
+}
+impl<'a> ArxivQuery<'a> {
+    fn construct_query(&self) -> Vec<(&'a str, String)> {
+        let format_title_include = format!(
+            "%28{}%29",
+            self.include_keywords
+                .iter()
+                .map(|keyword| {
+                    if keyword.contains(' ') {
+                        format!("ti:%22{}%22", keyword.replace(' ', "+"))
+                    } else {
+                        format!("ti:{}", keyword)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("+OR+")
+        );
+
+        let format_abstract_include = format!(
+            "%28{}%29",
+            self.include_keywords
+                .iter()
+                .map(|keyword| {
+                    if keyword.contains(' ') {
+                        format!("abs:%22{}%22", keyword.replace(' ', "+"))
+                    } else {
+                        format!("abs:{}", keyword)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("+OR+")
+        );
+
+        let format_abstract_exclude = format!(
+            "%28{}%29",
+            self.exclude_keywords
+                .iter()
+                .map(|keyword| {
+                    if keyword.contains(' ') {
+                        format!("abs:%22{}%22", keyword.replace(' ', "+"))
+                    } else {
+                        format!("abs:{}", keyword)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("+AND+")
+        );
+
+        let format_categories = format!(
+            "%28{}%29",
+            self.categories
+                .iter()
+                .map(|category| category.as_str())
+                .collect::<Vec<_>>()
+                .join("+OR+")
+        );
+        // println!("{format_title_include:?}");
+        // println!("{format_abstract_include:?}");
+        // println!("{format_abstract_exclude:?}");
+        // println!("{format_categories:?}");
+
+        let query = format!(
+            "{}+AND+{}+ANDNOT+{}+AND+{}",
+            format_title_include,
+            format_abstract_include,
+            format_abstract_exclude,
+            format_categories
+        );
+
+        vec![
+            ("search_query", query),
+            ("start", self.start.to_string()),
+            ("max_results", self.max_results.to_string()),
+            ("sortBy", self.sort_by.to_string()),
+            ("sortOrder", self.sort_order.to_string()),
+        ]
+    }
+}
+impl Default for ArxivQuery<'_> {
+    fn default() -> Self {
+        let default_config: HashMap<String, Vec<String>> = ArxivConfig::read_config()
+            .expect("[Error] While Reading Arxiv Config")
+            .into_iter()
+            .collect();
+        Self {
+            include_keywords: default_config
+                .get(&ArxivKeys::IncludeWords.as_str())
+                .expect("Gemini API key is not available")
+                .to_owned(),
+
+            exclude_keywords: default_config
+                .get(&ArxivKeys::ExcludeWords.as_str())
+                .expect("Gemini API key is not available")
+                .to_owned(),
+
+            authors: default_config
+                .get(&ArxivKeys::Authors.as_str())
+                .expect("Gemini API key is not available")
+                .to_owned(),
+
+            categories: default_config
+                .get(&ArxivKeys::Categories.as_str())
+                .expect("Gemini API key is not available")
+                .to_owned(),
+
+            start: "0",
+            max_results: "500",
+            sort_by: "submittedDate",
+            sort_order: "descending",
+        }
+    }
+}
+
+pub async fn arxive_search(query: Option<ArxivQuery<'_>>) -> Result<Vec<String>, Error> {
+    let arxive_search_url = "http://export.arxiv.org/api/query";
+    let client = Client::new();
+    let search_query = match query {
+        Some(q) => q.construct_query(),
+        None => ArxivQuery::default().construct_query(),
+    };
+
+    // Manually construct URL with parameters
+    let url = search_query
+        .iter()
+        .fold(String::from(arxive_search_url), |acc, (key, value)| {
+            if acc == arxive_search_url {
+                format!("{}?{}={}", acc, key, value)
+            } else {
+                format!("{}&{}={}", acc, key, value)
+            }
+        });
+
+    let response = client.get(url).send().await?;
+
+    println!("Response: {}", response.text().await?);
+
+    Ok(vec!["placeholder".to_string()])
+}
+
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn check_arxive_search() {
+        let res = arxive_search(None).await;
     }
 }
