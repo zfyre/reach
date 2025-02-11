@@ -218,11 +218,17 @@ impl Default for ArxivQuery<'_> {
     }
 }
 
-pub async fn arxive_search(query: Option<ArxivQuery<'_>>) -> Result<Vec<String>, Error> {
+pub async fn arxive_search(query: Option<&str>, max_results: &str) -> Result<Vec<String>, Error> {
     let arxive_search_url = "http://export.arxiv.org/api/query";
     let client = Client::new();
     let search_query = match query {
-        Some(q) => q.construct_query(),
+        Some(q) => {
+            let mut query_obj = ArxivQuery::default();
+            query_obj.include_keywords = vec![q.to_string()];
+            query_obj.max_results = max_results;
+            
+            query_obj.construct_query()
+        },
         None => ArxivQuery::default().construct_query(),
     };
 
@@ -249,6 +255,6 @@ mod tests {
 
     #[tokio::test]
     async fn check_arxive_search() {
-        let res = arxive_search(None).await;
+        let res = arxive_search(None, "10").await;
     }
 }

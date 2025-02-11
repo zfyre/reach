@@ -27,12 +27,25 @@ struct Cli {
     query: Option<String>,
 
     /// Enable LLM mode to use Gemini AI for search
-    #[arg(long, default_value_t = false)]
+    #[arg(short = 'l', long = "llm", default_value_t = false)]
     llm: bool,
 
+    /// Enable Google mode to search Google Search API
+    #[arg(short = 'g', long = "google", default_value_t = true)]
+    gs: bool,
+    
     /// Specify file type for search results (e.g., pdf, doc)
-    #[arg(long, default_value_t = String::from_str("").unwrap(), conflicts_with = "llm")]
+    #[arg(long, default_value_t = String::from_str("").unwrap(), requires = "gs")]
     ftype: String,
+
+    /// Enable arxive mode to search papers from Arxiv.com
+    #[arg(short = 'a', long = "arxiv", default_value_t = false)]
+    ax: bool,
+
+    /// Specify file type for search results (e.g., pdf, doc)
+    #[arg(long, default_value_t = String::from_str("10").unwrap(), requires = "ax")]
+    maxres: String,
+
 }
 
 
@@ -96,14 +109,21 @@ async fn main() -> Result<(), Error> {
                 ).await?;
                 println!("{out}");
                 Ok(())
+            } else if args.ax {
+                let out = arxive_search(
+                    Some(&args.query.expect("No query provided!")),
+                    &args.maxres
+                ).await?;
+
+                println!("{out:?}");
+                Ok(())
             } else {
                 let out = google_search(
                     &google_api_key,
                     &google_search_engine_id,
                     &args.query.expect("No query provided!"),
                     &args.ftype,
-                )
-                .await?;
+                ).await?;
 
                 for val in out {
                     println!("{val}\n");
