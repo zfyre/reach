@@ -209,7 +209,7 @@ pub enum ArxivKeys {
     ExcludeWords,
     Authors,
     Categories
-}//TODO: Maybe use this as a field of ApiConfig??!!
+}//TODO: Maybe use this as a field of ArxivConfig??!!
 
 impl ArxivKeys {
     
@@ -237,7 +237,7 @@ impl ArxivKeys {
 /// * `show` - Show the current configuration
 #[derive(Parser, Debug)]
 pub struct ArxivConfig {
-
+    
     /// Set include keywords to search
     include_keywords: Option<String>,
 

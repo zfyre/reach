@@ -46,7 +46,7 @@ struct Cli {
 
     /// Specify the maximum number of results to be returned
     #[arg(long, default_value_t = String::from_str("10").unwrap(), requires = "ax")]
-    maxres: String,
+    maxr: String,
 
 }
 
@@ -115,10 +115,10 @@ async fn main() -> Result<(), Error> {
             } else if args.ax {
                 let out = arxive_search(
                     Some(&args.query.expect("No query provided!")),
-                    &args.maxres
+                    &args.maxr
                 ).await?;
-
-                println!("{out:?}");
+                arxiv_display_output(out);
+                // println!("{out:?}");
                 Ok(())
             } else {
                 let out = google_search(

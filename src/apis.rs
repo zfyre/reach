@@ -1,7 +1,8 @@
 use reqwest::Client;
+use roxmltree;
 use serde_json::json;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::HashMap; // Add this dependency to Cargo.toml
 
 use crate::config::ArxivConfig;
 use crate::config::ArxivKeys;
@@ -103,7 +104,6 @@ struct ArxivQuery<'a> {
     max_results: &'a str, // ~500
     sort_by: &'a str,     // "relevance", "lastUpdatedDate"
     sort_order: &'a str,  // 'ascending', 'descending'
-
                           // id_list: Vstr<'a>,
 }
 impl<'a> ArxivQuery<'a> {
@@ -218,7 +218,16 @@ impl Default for ArxivQuery<'_> {
     }
 }
 
-pub async fn arxive_search(query: Option<&str>, max_results: &str) -> Result<Vec<String>, Error> {
+#[derive(Debug)]
+pub struct ArxivOutput {
+    pub url: String,
+    pub summary: String
+}
+
+pub async fn arxive_search(
+    query: Option<&str>,
+    max_results: &str,
+) -> Result<Vec<ArxivOutput>, Error> {
     let arxive_search_url = "http://export.arxiv.org/api/query";
     let client = Client::new();
     let search_query = match query {
@@ -226,9 +235,9 @@ pub async fn arxive_search(query: Option<&str>, max_results: &str) -> Result<Vec
             let mut query_obj = ArxivQuery::default();
             query_obj.include_keywords = vec![q.to_string()];
             query_obj.max_results = max_results;
-            
+
             query_obj.construct_query()
-        },
+        }
         None => ArxivQuery::default().construct_query(),
     };
 
@@ -245,16 +254,47 @@ pub async fn arxive_search(query: Option<&str>, max_results: &str) -> Result<Vec
 
     let response = client.get(url).send().await?;
 
-    println!("Response: {}", response.text().await?);
+    // XML Parsing!
+    let xml_content = response.text().await?;
 
-    Ok(vec!["placeholder".to_string()])
+    let doc = roxmltree::Document::parse(&xml_content)
+        .map_err(|e| 
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            e
+        ))?;
+            
+    let mut results: Vec<ArxivOutput> = Vec::new();
+
+    // Find all entry elements
+    for entry in doc.descendants().filter(|n| n.has_tag_name("entry")) {
+
+        let url = entry
+        .children()
+        .find(|n| n.has_tag_name("id"))
+        .and_then(|n| Some(n.text().unwrap_or("").to_string()));
+    
+        let summary = entry
+            .children()
+            .find(|n| n.has_tag_name("summary"))
+            .and_then(|n| Some(n.text().unwrap_or("").trim().to_string()));
+
+        if let (Some(url), Some(summary)) = (url, summary) {
+            results.push(ArxivOutput {
+                url,
+                summary
+            });
+        }
+    }
+    Ok(results)
 }
 
-#[cfg(test)]
 mod tests {
-    use super::arxive_search;
+    use crate::apis::arxive_search;
+
     #[tokio::test]
     async fn check_arxive_search() {
-        let _res = arxive_search(None, "10").await;
+        let _res = arxive_search(Some("Diffusion Models"), "2").await.unwrap();
+        println!("{:?}", _res);
     }
 }
