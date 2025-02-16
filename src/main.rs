@@ -1,5 +1,6 @@
 mod apis;
 mod config;
+mod display;
 
 use tokio;
 use clap::Parser;
@@ -10,6 +11,7 @@ use std::collections::HashMap;
 
 use apis::*;
 use config::*;
+use display::*;
 
 
 #[derive(Parser, Debug)]
@@ -107,7 +109,8 @@ async fn main() -> Result<(), Error> {
                     &gemini_api_key,
                     &args.query.expect("No query provided!")
                 ).await?;
-                println!("{out}");
+                gemini_display_output(&format!("{}", out).trim_matches('"'));
+                // println!("{out}");
                 Ok(())
             } else if args.ax {
                 let out = arxive_search(
