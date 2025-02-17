@@ -14,3 +14,4 @@ reqwest = { version = "0.11", features = ["json"] }
 serde_json = "1.0"
 roxmltree = "0.19.0"
 colored = "3.0.0"
+termimad = "0.31.2"

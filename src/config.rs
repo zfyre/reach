@@ -1,6 +1,6 @@
 use std::{env, fs, path::PathBuf, str::FromStr};
 use clap::Parser;
-use crate::apis::Error;
+use crate::apis::ReachError;
 use std::io::{self, Write};
 
 /// The commands that can be executed
@@ -43,7 +43,7 @@ fn get_config_path() -> PathBuf {
 /// # Errors
 /// 
 /// * If the file cannot be read or written to
-pub fn save_config(key: &str, value: &str) -> Result<(), Error> {
+pub fn save_config(key: &str, value: &str) -> Result<(), ReachError> {
     let config_path = get_config_path();
     let content = if config_path.exists() {
         let existing = fs::read_to_string(&config_path)?;
@@ -124,7 +124,7 @@ impl ApiConfig {
     /// # Errors
     /// 
     /// * If the file cannot be read
-    pub fn read_config() -> Result<Vec<(String, String)>, Error> {
+    pub fn read_config() -> Result<Vec<(String, String)>, ReachError> {
         let config_path = get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
@@ -158,7 +158,7 @@ impl ApiConfig {
     /// * If the input/output fails
     /// 
     /// * If the configuration cannot be saved / read / written
-    pub fn get_config_from_user() -> Result<(), Error> {
+    pub fn get_config_from_user() -> Result<(), ReachError> {
         let mut google_api_key = String::new();
         let mut search_engine_id = String::new();
         let mut gemini_api_key = String::new();
@@ -261,7 +261,7 @@ impl ArxivConfig {
     /// # Returns
     /// 
     /// * `Result<Vec<(String, Vec<String>)>, Error>` - The result of the operation
-    pub fn read_config() -> Result<Vec<(String, Vec<String>)>, Error> {
+    pub fn read_config() -> Result<Vec<(String, Vec<String>)>, ReachError> {
         let config_path = get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
@@ -297,7 +297,7 @@ impl ArxivConfig {
     /// # Returns
     /// 
     /// * `Result<(), Error>` - The result of the operation
-    pub fn get_config_from_user() -> Result<(), Error> {
+    pub fn get_config_from_user() -> Result<(), ReachError> {
         let mut include_words = String::new();
         let mut exclude_words = String::new();
         let mut authors = String::new();

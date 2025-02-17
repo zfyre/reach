@@ -1,4 +1,6 @@
+use clap::builder::Str;
 use reqwest::Client;
+use reqwest::Url;
 use roxmltree;
 use serde_json::json;
 use serde_json::Value;
@@ -6,26 +8,27 @@ use std::collections::HashMap; // Add this dependency to Cargo.toml
 
 use crate::config::ArxivConfig;
 use crate::config::ArxivKeys;
+use crate::display::RawOuts;
 
 #[derive(Debug)]
 #[allow(dead_code)]
-pub enum Error {
+pub enum ReachError {
     ReqwestError(reqwest::Error),
     IoError(std::io::Error),
 }
-impl From<reqwest::Error> for Error {
-    fn from(err: reqwest::Error) -> Error {
-        Error::ReqwestError(err)
+impl From<reqwest::Error> for ReachError {
+    fn from(err: reqwest::Error) -> ReachError {
+        ReachError::ReqwestError(err)
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Error {
-        Error::IoError(err)
+impl From<std::io::Error> for ReachError {
+    fn from(err: std::io::Error) -> ReachError {
+        ReachError::IoError(err)
     }
 }
 
-pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<String, Error> {
+pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<String, ReachError> {
     let gemini_request_url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     );
@@ -52,7 +55,7 @@ pub async fn google_search(
     search_engine_id: &str,
     query: &str,
     ftype: &str,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<RawOuts<'static>>, ReachError> {
     let google_search_request_url = format!("https://www.googleapis.com/customsearch/v1");
     let client = Client::new();
     let response = client
@@ -85,12 +88,17 @@ pub async fn google_search(
                 item.get("title").and_then(|t| t.as_str()),
                 item.get("link").and_then(|l| l.as_str()),
             ) {
-                results.push(format!("Title: {}\nURL: {}", title, link));
+                // results.push(format!("Title: {}\nURL: {}", title, link));
+                results.push(RawOuts::RawGoogleOut((title.to_string(), link.to_string())));
             }
         }
         Ok(results)
     } else {
-        Ok(vec!["No Response!, Try rephrasing your query.".to_string()])
+        // TODO: Make this a better error handling!
+        Ok(vec![RawOuts::RawGoogleOut((
+            "No Response!, Try rephrasing your query.".to_string(),
+            "".to_string(),
+        ))])
     }
 }
 
@@ -220,14 +228,15 @@ impl Default for ArxivQuery<'_> {
 
 #[derive(Debug)]
 pub struct ArxivOutput {
+    pub title: String,
     pub url: String,
-    pub summary: String
+    pub summary: String,
 }
 
 pub async fn arxive_search(
     query: Option<&str>,
     max_results: &str,
-) -> Result<Vec<ArxivOutput>, Error> {
+) -> Result<Vec<RawOuts<'static>>, ReachError> {
     let arxive_search_url = "http://export.arxiv.org/api/query";
     let client = Client::new();
     let search_query = match query {
@@ -258,32 +267,35 @@ pub async fn arxive_search(
     let xml_content = response.text().await?;
 
     let doc = roxmltree::Document::parse(&xml_content)
-        .map_err(|e| 
-        std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            e
-        ))?;
-            
-    let mut results: Vec<ArxivOutput> = Vec::new();
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+
+    let mut results = Vec::new();
 
     // Find all entry elements
     for entry in doc.descendants().filter(|n| n.has_tag_name("entry")) {
 
+        let title = entry
+            .children()
+            .find(|n| n.has_tag_name("title"))
+            .and_then(|n| Some(n.text().unwrap_or("").trim().to_string()));
+
         let url = entry
-        .children()
-        .find(|n| n.has_tag_name("id"))
-        .and_then(|n| Some(n.text().unwrap_or("").to_string()));
-    
+            .children()
+            .find(|n| n.has_tag_name("id"))
+            .and_then(|n| Some(n.text().unwrap_or("").to_string()));
+
         let summary = entry
             .children()
             .find(|n| n.has_tag_name("summary"))
             .and_then(|n| Some(n.text().unwrap_or("").trim().to_string()));
 
-        if let (Some(url), Some(summary)) = (url, summary) {
-            results.push(ArxivOutput {
-                url,
-                summary
-            });
+        if let (Some(title), Some(url), Some(summary)) = (title, url, summary) {
+            results.push(RawOuts::RawArxivOut(
+                ArxivOutput {
+                    title,
+                    url,
+                    summary
+            }));
         }
     }
     Ok(results)
@@ -295,6 +307,5 @@ mod tests {
     #[tokio::test]
     async fn check_arxive_search() {
         let _res = arxive_search(Some("Diffusion Models"), "2").await.unwrap();
-        println!("{:?}", _res);
     }
 }

@@ -13,11 +13,14 @@ use apis::*;
 use config::*;
 use display::*;
 
+pub const AUTHOR: &str = "Me <kshitiz4kaushik@gmail.com>";
+pub const VERSION: &str = "1.0.0";
+
 
 #[derive(Parser, Debug)]
 #[command(
-    author = "Me <kshitiz4kaushik@gmail.com>",
-    version = "1.0.0",
+    author = AUTHOR,
+    version = VERSION,
     about = "A CLI tool for Web/LLM Searching with a touch of arxive! coming soon",
     long_about = "A command line interface tool for performing web searches using Google Search API and Gemini LLM",
 )]
@@ -52,7 +55,7 @@ struct Cli {
 
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), ReachError> {
     let args = Cli::parse();
     // println!("{args:?}");
 
@@ -117,7 +120,8 @@ async fn main() -> Result<(), Error> {
                     Some(&args.query.expect("No query provided!")),
                     &args.maxr
                 ).await?;
-                arxiv_display_output(out);
+                // arxiv_display_output(&out);
+                ArxivTerminalDisplay::display_in_terminal(out)?;
                 // println!("{out:?}");
                 Ok(())
             } else {
@@ -127,10 +131,7 @@ async fn main() -> Result<(), Error> {
                     &args.query.expect("No query provided!"),
                     &args.ftype,
                 ).await?;
-
-                for val in out {
-                    println!("{val}\n");
-                }
+                GoogleTerminalDisplay::display_in_terminal(out)?;
                 Ok(())
             }
 
