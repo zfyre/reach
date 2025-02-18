@@ -131,12 +131,6 @@ pub fn gemini_display_output(markdown_text: &str) {
     println!("{}", markdown_text)
 }
 
-pub fn arxiv_display_output(arxiv_output: &Vec<ArxivOutput>) {
-    for out in arxiv_output {
-        println!("{}\n{}\n\n", out.url.yellow(), out.summary);
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use colored::Colorize;
