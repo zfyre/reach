@@ -1,6 +1,6 @@
-use clap::builder::Str;
+// use clap::builder::Str;
 use reqwest::Client;
-use reqwest::Url;
+// use reqwest::Url;
 use roxmltree;
 use serde_json::json;
 use serde_json::Value;
@@ -28,7 +28,7 @@ impl From<std::io::Error> for ReachError {
     }
 }
 
-pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<String, ReachError> {
+pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<Vec<RawOuts>, ReachError> {
     let gemini_request_url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     );
@@ -45,8 +45,9 @@ pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<String, R
         .await?;
 
     let json_response: Value = response.json().await?;
-
-    Ok(json_response["candidates"][0]["content"]["parts"][0]["text"].to_string())
+    let res = json_response["candidates"][0]["content"]["parts"][0]["text"].to_string();
+    
+    Ok(vec![RawOuts::RawGeminiOut(res)])
     // There is some metadata in the output as well!
 }
 
@@ -55,7 +56,7 @@ pub async fn google_search(
     search_engine_id: &str,
     query: &str,
     ftype: &str,
-) -> Result<Vec<RawOuts<'static>>, ReachError> {
+) -> Result<Vec<RawOuts>, ReachError> {
     let google_search_request_url = format!("https://www.googleapis.com/customsearch/v1");
     let client = Client::new();
     let response = client
@@ -236,7 +237,7 @@ pub struct ArxivOutput {
 pub async fn arxive_search(
     query: Option<&str>,
     max_results: &str,
-) -> Result<Vec<RawOuts<'static>>, ReachError> {
+) -> Result<Vec<RawOuts>, ReachError> {
     let arxive_search_url = "http://export.arxiv.org/api/query";
     let client = Client::new();
     let search_query = match query {

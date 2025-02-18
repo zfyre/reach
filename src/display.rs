@@ -1,14 +1,16 @@
 use super::VERSION;
 use crate::apis::{ArxivOutput, ReachError};
-use colored::Colorize;
+// use colored::Colorize;
+// use serde_json::value;
 use {
     minimad::{OwningTemplateExpander, TextTemplate},
     termimad::crossterm::style::Color::*,
     termimad::*,
 };
 
-pub enum RawOuts<'a> {
-    RawGeminiOut(&'a str),
+#[derive(Debug)]
+pub enum RawOuts {
+    RawGeminiOut(String),
     RawArxivOut(ArxivOutput),
     RawGoogleOut((String, String)),
 }
@@ -28,7 +30,7 @@ pub trait TerminalDisplay {
         skin.set_headers_fg(AnsiValue(178));
         skin.headers[2].set_fg(gray(22));
         skin.bold.set_fg(Yellow);
-        skin.italic.set_fg(Magenta);
+        skin.italic.set_fg(White);
         skin.scrollbar.thumb.set_fg(AnsiValue(178));
         skin.table_border_chars = ROUNDED_TABLE_BORDER_CHARS;
         skin.paragraph.align = Alignment::Left;
@@ -81,6 +83,48 @@ impl TerminalDisplay for GoogleTerminalDisplay {
     }
 }
 
+impl TerminalDisplay for GeminiTerminalDisplay {
+    fn get_display_template() -> &'static str {
+        "
+        -----------
+        # ${app-name} v${app-version}
+        ## Gemini Mode
+
+        ${module-rows
+        ${module-name}
+        }
+        "
+    }
+    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError> {
+        let mut expander = Self::get_expander();
+        for raws in raw_outs {
+            match raws {
+                RawOuts::RawGeminiOut(llm_out) => {
+                    let llm_out = llm_out
+                        .replace("\\n", "\r\n")
+                        .replace("\\\"", "\"");
+                        
+                    
+                    expander
+                        .sub("module-rows")
+                        .set_md("module-name", llm_out.trim_matches('"'));
+
+                }
+                _ => (),
+            }
+        }
+        // use the data to build the markdown text and print it
+        let skin = Self::make_skin();
+        let template = TextTemplate::from(Self::get_display_template());
+        let text = expander.expand(&template);
+        let (width, _) = terminal_size();
+        let fmt_text = FmtText::from_text(&skin, text, Some(width as usize));
+        print!("{}", fmt_text);
+        Ok(())
+    }
+}
+
+
 impl TerminalDisplay for ArxivTerminalDisplay {
     fn get_display_template() -> &'static str {
         r#"
@@ -119,16 +163,10 @@ impl TerminalDisplay for ArxivTerminalDisplay {
         let template = TextTemplate::from(Self::get_display_template());
         let text = expander.expand(&template);
         let (width, _) = terminal_size();
-        let fmt_text = FmtText::from_text(&skin, text, Some(2*width as usize));
+        let fmt_text = FmtText::from_text(&skin, text, Some(width as usize));
         print!("{}", fmt_text);
         Ok(())
     }
-}
-
-/// File to configure the display the output in the terminal
-
-pub fn gemini_display_output(markdown_text: &str) {
-    println!("{}", markdown_text)
 }
 
 #[cfg(test)]

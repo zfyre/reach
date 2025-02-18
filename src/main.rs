@@ -1,6 +1,7 @@
 mod apis;
 mod config;
 mod display;
+mod rsearch;
 
 use tokio;
 use clap::Parser;
@@ -8,14 +9,31 @@ use clap::Parser;
 // use std::{env, str::FromStr};
 use std::str::FromStr;
 use std::collections::HashMap;
+use rsearch::RSearch;
 
 use apis::*;
 use config::*;
 use display::*;
+use rsearch::*;
+
 
 pub const AUTHOR: &str = "Me <kshitiz4kaushik@gmail.com>";
 pub const VERSION: &str = "1.0.0";
 
+/// The commands that can be executed
+/// 
+/// * `Config` - Configure API keys
+#[derive(clap::Subcommand, Debug)]
+pub enum Commands {
+    /// Configure API keys
+    ApiConfig(ApiConfig),
+
+    /// Configure Arxiv config
+    ArxivConfig(ArxivConfig),
+
+    /// Configure RSearch config
+    RSearch(RSearch)
+}
 
 #[derive(Parser, Debug)]
 #[command(
@@ -97,6 +115,9 @@ async fn main() -> Result<(), ReachError> {
             ArxivConfig::get_config_from_user()?;
             Ok(())
         }
+        Some(Commands::RSearch(cmd)) => {
+            Ok(())
+        }
         None => { // Apply Proper Search
 
             let api_config: HashMap<String, String> = ApiConfig::read_config()?.into_iter().collect();
@@ -112,7 +133,8 @@ async fn main() -> Result<(), ReachError> {
                     &gemini_api_key,
                     &args.query.expect("No query provided!")
                 ).await?;
-                gemini_display_output(&format!("{}", out).trim_matches('"'));
+                // gemini_display_output(&format!("{}", out).trim_matches('"'));
+                GeminiTerminalDisplay::display_in_terminal(out)?;
                 // println!("{out}");
                 Ok(())
             } else if args.ax {

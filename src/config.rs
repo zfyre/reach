@@ -3,18 +3,6 @@ use clap::Parser;
 use crate::apis::ReachError;
 use std::io::{self, Write};
 
-/// The commands that can be executed
-/// 
-/// * `Config` - Configure API keys
-#[derive(clap::Subcommand, Debug)]
-pub enum Commands {
-    /// Configure API keys
-    ApiConfig(ApiConfig),
-
-    /// Configure Arxiv config
-    ArxivConfig(ArxivConfig)
-}
-
 /// The name of the configuration file
 pub const CONFIG_FILE: &str = ".reach-config";
 
