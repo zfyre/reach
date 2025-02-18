@@ -1,4 +1,4 @@
 /target
 .env
 /src/bin
-temp.txt
+*.txt
