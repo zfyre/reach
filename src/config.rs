@@ -1,6 +1,6 @@
 use std::{env, fs, path::PathBuf, str::FromStr};
 use clap::Parser;
-use crate::apis::ReachError;
+use crate::errors::ReachError;
 use std::io::{self, Write};
 
 /// The name of the configuration file

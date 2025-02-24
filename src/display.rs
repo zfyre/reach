@@ -1,5 +1,6 @@
 use super::VERSION;
-use crate::apis::{ArxivOutput, ReachError};
+use crate::apis::ArxivOutput;
+use crate::errors::ReachError;
 // use colored::Colorize;
 // use serde_json::value;
 use {

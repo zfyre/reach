@@ -2,6 +2,7 @@ mod apis;
 mod config;
 mod display;
 mod rsearch;
+mod errors;
 
 use tokio;
 use clap::Parser;
@@ -9,11 +10,12 @@ use clap::Parser;
 // use std::{env, str::FromStr};
 use std::str::FromStr;
 use std::collections::HashMap;
-use rsearch::RSearch;
+use rsearch::Rsearch;
 
 use apis::*;
 use config::*;
 use display::*;
+use errors::*;
 use rsearch::*;
 
 
@@ -32,7 +34,7 @@ pub enum Commands {
     ArxivConfig(ArxivConfig),
 
     /// Configure RSearch config
-    RSearch(RSearch)
+    Rsearch(Rsearch)
 }
 
 #[derive(Parser, Debug)]
@@ -115,7 +117,7 @@ async fn main() -> Result<(), ReachError> {
             ArxivConfig::get_config_from_user()?;
             Ok(())
         }
-        Some(Commands::RSearch(cmd)) => {
+        Some(Commands::Rsearch(cmd)) => {
             Ok(())
         }
         None => { // Apply Proper Search

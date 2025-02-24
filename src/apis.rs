@@ -9,24 +9,7 @@ use std::collections::HashMap; // Add this dependency to Cargo.toml
 use crate::config::ArxivConfig;
 use crate::config::ArxivKeys;
 use crate::display::RawOuts;
-
-#[derive(Debug)]
-#[allow(dead_code)]
-pub enum ReachError {
-    ReqwestError(reqwest::Error),
-    IoError(std::io::Error),
-}
-impl From<reqwest::Error> for ReachError {
-    fn from(err: reqwest::Error) -> ReachError {
-        ReachError::ReqwestError(err)
-    }
-}
-
-impl From<std::io::Error> for ReachError {
-    fn from(err: std::io::Error) -> ReachError {
-        ReachError::IoError(err)
-    }
-}
+use crate::errors::ReachError;
 
 pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<Vec<RawOuts>, ReachError> {
     let gemini_request_url = format!(
@@ -303,10 +286,8 @@ pub async fn arxive_search(
 }
 
 mod tests {
-    use crate::apis::arxive_search;
-
     #[tokio::test]
     async fn check_arxive_search() {
-        let _res = arxive_search(Some("Diffusion Models"), "2").await.unwrap();
+        let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
     }
 }
