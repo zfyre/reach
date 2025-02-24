@@ -1,4 +1,7 @@
 /target
 .env
 /src/bin
-*.txt
+temp.txt
+temp2.txt
+.vscode
+.venv
