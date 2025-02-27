@@ -1,8 +1,11 @@
 /target
-.env
+/build
 /src/bin
-temp.txt
-temp2.txt
+
 .vscode
 .venv
-/build
+.env
+*.json
+
+temp.txt
+temp2.txt

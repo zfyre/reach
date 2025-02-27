@@ -207,8 +207,16 @@ pub async fn arxive_search(
 }
 
 mod tests {
+<<<<<<< HEAD
     // #[tokio::test]
     // async fn check_arxive_search() {
     //     let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
     // }
+=======
+    #[cfg(feature = "requires_config")]
+    #[tokio::test]
+    async fn check_arxive_search() {
+        let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
+    }
+>>>>>>> a35adb09fdbc5a156f7d9e54123f7d767031b239
 }

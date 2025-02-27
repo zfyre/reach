@@ -3,6 +3,9 @@ name = "reach-cli"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+requires_config = []
+
 [[bin]]
 name = "reach"
 path = "src/main.rs"

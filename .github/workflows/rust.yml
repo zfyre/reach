@@ -11,12 +11,31 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Create a virtual environment
+      - name: Create virtual environment
+        run: python -m venv .venv
+
+      # Install Python dependencies from requirements.txt
+      - name: Install Python dependencies
+        run: |
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install -U crawl4ai
+          .venv/bin/crawl4ai-setup
+
+      # Build the Rust project
+      - name: Build
+        run: cargo build --verbose
+
+      # Run tests (ensure your Rust tests use the correct path for Python)
+      - name: Run tests
+        run: cargo test --verbose
