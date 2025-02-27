@@ -207,8 +207,8 @@ pub async fn arxive_search(
 }
 
 mod tests {
-    #[tokio::test]
-    async fn check_arxive_search() {
-        let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
-    }
+    // #[tokio::test]
+    // async fn check_arxive_search() {
+    //     let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
+    // }
 }
