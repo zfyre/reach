@@ -1,33 +1,56 @@
+use std::{fmt, io};
+use reqwest::Error as ReqwestError;
+use serde_json::Error as SerdeError;
+
 #[derive(Debug)]
-#[allow(dead_code)]
 pub enum ReachError {
-    ReqwestError(reqwest::Error),
-    IoError(std::io::Error),
-    CommandProcessError(Box<dyn std::error::Error>),
-    JsonParseError(serde_json::Error),
-    UnexpectedError(String),
+    IoError(io::Error),
+    NetworkError(ReqwestError),
+    SerializationError(SerdeError),
+    ConfigError(String),
+    DisplayError(String),
+    ApiError(String),
+    ParsingError(String),
+    CrawlerError(String),
 }
 
-impl From<reqwest::Error> for ReachError {
-    fn from(err: reqwest::Error) -> ReachError {
-        ReachError::ReqwestError(err)
+impl fmt::Display for ReachError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ReachError::IoError(e) => write!(f, "IO Error: {}", e),
+            ReachError::NetworkError(e) => write!(f, "Network Error: {}", e),
+            ReachError::SerializationError(e) => write!(f, "Serialization Error: {}", e),
+            ReachError::ConfigError(e) => write!(f, "Configuration Error: {}", e),
+            ReachError::DisplayError(e) => write!(f, "Display Error: {}", e),
+            ReachError::ApiError(e) => write!(f, "API Error: {}", e),
+            ReachError::ParsingError(e) => write!(f, "Parsing Error: {}", e),
+            ReachError::CrawlerError(e) => write!(f, "Web Crawler Error: {}", e),
+        }
     }
 }
 
-impl From<std::io::Error> for ReachError {
-    fn from(err: std::io::Error) -> ReachError {
+impl std::error::Error for ReachError {}
+
+impl From<io::Error> for ReachError {
+    fn from(err: io::Error) -> Self {
         ReachError::IoError(err)
     }
 }
 
-impl From<Box<dyn std::error::Error>> for ReachError {
-    fn from(err: Box<dyn std::error::Error>) -> ReachError {
-        ReachError::CommandProcessError(err)
+impl From<ReqwestError> for ReachError {
+    fn from(err: ReqwestError) -> Self {
+        ReachError::NetworkError(err)
     }
 }
 
-impl From<serde_json::Error> for ReachError {
-    fn from(err: serde_json::Error) -> ReachError {
-        ReachError::JsonParseError(err)
+impl From<SerdeError> for ReachError {
+    fn from(err: SerdeError) -> Self {
+        ReachError::SerializationError(err)
+    }
+}
+
+impl From<String> for ReachError {
+    fn from(err: String) -> Self {
+        ReachError::ConfigError(err)
     }
 }
