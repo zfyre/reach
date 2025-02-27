@@ -30,7 +30,7 @@ jobs:
         run: |
           .venv/bin/python -m pip install --upgrade pip
           .venv/bin/python -m pip install -U crawl4ai
-          crawl4ai-setup
+          .venv/bin/crawl4ai-setup
 
       # Build the Rust project
       - name: Build
