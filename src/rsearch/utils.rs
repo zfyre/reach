@@ -44,8 +44,14 @@ mod tests {
     #[tokio::test]
     async fn get_markdown_from_python() {
         let url = "https://codeforces.com/";
-        let mut binding = tokio::process::Command::new(".venv/Scripts/python.exe");
-        let command = binding // Use Python from virtual environment
+        let python_path = if cfg!(windows) {
+            ".venv/Scripts/python.exe"
+        } else {
+            ".venv/bin/python"  // Unix-like systems (Linux/MacOS)
+        };
+
+        let mut binding = tokio::process::Command::new(python_path);
+        let command = binding
             .arg("src/scripts/crawl.py")
             .arg(&format!("--url={}", url));
 
