@@ -1,79 +1,134 @@
-# Reach-CLI (Rust-Search-CLI / Research-CLI)
+# Reach - Research Assistant CLI Tool
+Reach is a command-line tool designed to enhance academic research by integrating search capabilities from Google, arXiv, and Gemini to provide comprehensive information gathering, summarization, and knowledge graph generation.
+Features
 
-**Reach-CLI** is a command-line tool written in Rust that lets you perform web searches using the Google Custom Search API and leverage Gemini LLM for enhanced search results. With a future vision of integrating an Arxive paper finder, this tool aims to streamline your research workflow right from the terminal.
+- 🔍 Multi-source Search: Integrated search across Google, arXiv, and Gemini
+- 📝 Web Content Extraction: Automatically extracts relevant content from web pages
+- 📊 Summarization: Generates concise summaries of research content
+- 🔗 Knowledge Graph Generation: Creates knowledge graphs to visualize relationships between concepts
+- ⚙️ Configurable: Customize search parameters, keywords, and categories
 
-## Features
+# Prerequisites
 
-- **Dual Search Modes**  
-  - **Google Search:** Retrieve search results using the Google Custom Search API.  
-  - **LLM Search:** Use Gemini LLM to generate search results based on your query.
+Rust (latest stable version)
+Python 3.12 or higher
+API keys:
 
-- **Configurable API Keys**  
-  Easily configure your API keys for:
-  - Google Search API (`REACH_GOOGLE_SEARCH_API_KEY`)
-  - Google Search Engine ID (`REACH_GOOGLE_SEARCH_ENGINE_ID`)
-  - Gemini API (`REACH_GEMINI_API_KEY`)
-  
-  These are stored in a hidden configuration file (`.reach-config`) in your home directory.
-
-- **Future Integrations**  
-  Plans to include an Arxive paper finder and pipeline to refine queries and retrieve academic papers.
-
-## Installation
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/zfyre/reach.git
-   cd reach
-   ```
-
-2. **Build the Project Ensure you have Rust installed. Then build with Cargo:**
-    ```bash
-    cargo build --release
-    ```
-
-## Configuration
-
-1. **Before using the tool, set up your API keys. Run the configuration subcommand to input your keys:**  
-   ```bash
-   cargo run -- config
-   ```
-2. **To view your current configuration:**
-    ```bash
-    cargo run -- config --show
-    ```
-
-## Usage
-
-1. **Perform a Google Search:**
-    ```bash
-    cargo run -- "What is the meaning of life?"
-    ```
-    **Note:** To restrict the filetype, use the `--filetype` flag:
-    ```bash
-    cargo run -- "Rust async programming" --ftype doc
-    ```
-
-2. **Perform an LLM Search:**
-    ```bash
-    cargo run --llm "What is 'Attention is all you need' ?"
-    ```
-
-## Future Work
-- **Arxive Integration:**
-    - Incorporate a Python-based Arxive paper finder to enable a seamless pipeline for academic research.
-
-- **Enhanced Query Refinement:**
-    - Utilize Gemini LLM to refine user queries further and extract relevant content from search results.
+Google Search API key
+Google Custom Search Engine ID
+Gemini API key
 
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## OnGoing Issues
-- [ ] It could be possible that keeping `""` as default argument to 'ftype' flag in `main.rs` could cause issues, currently checking that. 
-- [ ] The display of llm content and google search content is not very pleasing, need to fix that.
-- [ ] Need to create a build script to create a binary for the project, and initialze the reach cli for user from crate.io.
-- [ ] Need to add the tests and github-workflows for the project.
+# Installation
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/reach.git
+cd reach
+```
+2. Set up Python environment
+```bash
+# Create virtual environment
+python -m venv .venv
 
+# Activate virtual environment (Windows)
+.venv\Scripts\activate
 
+# Activate virtual environment (Linux/macOS)
+source .venv/bin/activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -U crawl4ai
+crawl4ai-setup
+```
+3. Build the Rust project
+```bash
+cargo build --release
+```
+
+# Configuration
+1. Reach requires several API keys to function properly. You can configure these using the CLI:
+```bash
+# Launch the interactive configuration
+cargo run -- config
+
+# Or set each key individually
+cargo run -- config --google-api-key YOUR_GOOGLE_API_KEY
+cargo run -- config --search-engine-id YOUR_SEARCH_ENGINE_ID
+cargo run -- config --gemini-api-key YOUR_GEMINI_API_KEY
+```
+
+2. You can customize your arXiv search preferences:
+```bash
+# Launch the interactive configuration
+cargo run -- arxiv-config
+
+# Show current configuration
+cargo run -- arxiv-config --show
+```
+The arXiv configuration allows you to set:
+
+- Keywords to include in searches
+- Keywords to exclude from searches
+- Specific authors to focus on
+- arXiv categories to search within
+
+# Usage
+## Basic Search
+```bash
+# Search with default parameters
+cargo run -- search "Diffusion Models"
+
+# Specify result limit
+cargo run -- search "Flow based Diffusion Models" --max-results 5
+```
+## Generate Summaries
+```bash
+cargo run -- summarize "What are Diffusion Models?"
+```
+## Generate Knowledge Graph
+```bash
+cargo run -- knowledge-graph "What are Flow based Diffusion Models?"
+```
+
+# Project Structure
+```
+Copyreach/
+├── src/
+│   ├── apis/               # API integrations (Google, Gemini, arXiv)
+│   ├── config/             # Configuration handling
+│   ├── rsearch/            # Research functionality
+│   │   ├── knowledge_graph.rs  # Knowledge graph generation
+│   │   └── utils.rs        # Utility functions
+│   ├── scripts/            # Python scripts for web scraping
+│   ├── display/            # Output formatting
+│   └── errors/             # Error handling
+├── .venv/                  # Python virtual environment
+└── data/                   # Output data storage
+    ├── summaries.json      # Generated summaries
+    └── knowledge_graph.json # Generated knowledge graphs
+```
+
+# Development
+## Running Tests
+```bash
+# Run all tests
+cargo test
+
+# Run tests that require configuration
+cargo test --features requires_config
+```
+
+# GitHub Actions
+The project includes GitHub Actions workflows that:
+- Build the project
+- Set up the Python environment
+- Install dependencies
+- Run tests
+
+# License
+[Specify your license here]
+
+# Contributing
+[Add contribution guidelines if applicable]
