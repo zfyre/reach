@@ -140,100 +140,103 @@ async fn get_markdown(url: &str) -> Result<String, ReachError> {
     Ok(result)
 }
 
-// mod tests {
-//     use std::{collections::{linked_list, HashMap}, fmt::format};
+mod tests {
+    use std::{collections::{linked_list, HashMap}, fmt::format};
 
-//     use crate::{
-//         apis::{gemini_query, google_search},
-//         config::{ApiConfig, ApiKeys}, display::RawOuts, rsearch::{get_markdown, Context},
-//     };
+    use crate::{
+        apis::{gemini_query, google_search},
+        config::{ApiConfig, ApiKeys}, display::RawOuts, rsearch::{get_markdown, Context},
+    };
 
-//     #[tokio::test]
-//     async fn get_html_from_site() {
-//         let body = reqwest::get("https://www.airbnb.co.in/").await.unwrap();
-//         // let res = body.text().await.unwrap();
-//         let html = body.text().await.unwrap();
-//         let document = scraper::Html::parse_document(&html);
-//         let selector = scraper::Selector::parse("body").unwrap();
-//         let res = document
-//             .select(&selector)
-//             .next()
-//             .map(|element| element.text().collect::<Vec<_>>().join(" "))
-//             .unwrap_or_default();
+    #[cfg(feature = "requires_config")]
+    #[tokio::test]
+    async fn get_html_from_site() {
+        let body = reqwest::get("https://www.airbnb.co.in/").await.unwrap();
+        // let res = body.text().await.unwrap();
+        let html = body.text().await.unwrap();
+        let document = scraper::Html::parse_document(&html);
+        let selector = scraper::Selector::parse("body").unwrap();
+        let res = document
+            .select(&selector)
+            .next()
+            .map(|element| element.text().collect::<Vec<_>>().join(" "))
+            .unwrap_or_default();
 
-//         // println!("{}", res.trim_end().split_whitespace().collect::<Vec<_>>().join(" "));
+        // println!("{}", res.trim_end().split_whitespace().collect::<Vec<_>>().join(" "));
 
-//         let api_config: HashMap<String, String> =
-//             ApiConfig::read_config().unwrap().into_iter().collect();
+        let api_config: HashMap<String, String> =
+            ApiConfig::read_config().unwrap().into_iter().collect();
 
-//         let prompt = "I will provide you with the extracted text content from a webpage. Please analyze it thoroughly and provide a comprehensive summary including: 1) The main topic and purpose of the content, 2) Key concepts and arguments presented, 3) Any significant findings or conclusions, 4) The target audience, and 5) The overall writing style and tone. Be detailed but concise in your analysis. Here is the text:";
+        let prompt = "I will provide you with the extracted text content from a webpage. Please analyze it thoroughly and provide a comprehensive summary including: 1) The main topic and purpose of the content, 2) Key concepts and arguments presented, 3) Any significant findings or conclusions, 4) The target audience, and 5) The overall writing style and tone. Be detailed but concise in your analysis. Here is the text:";
 
-//         let gemini_api_key = api_config
-//             .get(&ApiKeys::Gemini.as_str())
-//             .expect("Gemini API key is not available");
-//         let a = gemini_query(gemini_api_key, &format!("{}\n{}", prompt, res))
-//             .await
-//             .unwrap();
+        let gemini_api_key = api_config
+            .get(&ApiKeys::Gemini.as_str())
+            .expect("Gemini API key is not available");
+        let a = gemini_query(gemini_api_key, &format!("{}\n{}", prompt, res))
+            .await
+            .unwrap();
 
-//         println!("{:?}", a);
-//     }
+        println!("{:?}", a);
+    }
 
-    // #[tokio::test]
-    // async fn get_markdown_from_python() {
-    //     let url = "https://codeforces.com/";
-    //     let mut binding = tokio::process::Command::new(".venv/Scripts/python.exe");
-    //     let command = binding // Use Python from virtual environment
-    //         .arg("src/scripts/crawl.py")
-    //         .arg(&format!("--url={}", url));
+    #[cfg(feature = "requires_config")]
+    #[tokio::test]
+    async fn get_markdown_from_python() {
+        let url = "https://codeforces.com/";
+        let mut binding = tokio::process::Command::new(".venv/Scripts/python.exe");
+        let command = binding // Use Python from virtual environment
+            .arg("src/scripts/crawl.py")
+            .arg(&format!("--url={}", url));
 
-    //     println!("Running command: {:?}", command);
+        println!("Running command: {:?}", command);
 
-    //     let output = command.output().await.unwrap();
+        let output = command.output().await.unwrap();
 
-    //     if !output.status.success() {
-    //         eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
-    //     }
+        if !output.status.success() {
+            eprintln!("Error: {}", String::from_utf8_lossy(&output.stderr));
+        }
 
-    //     let result = String::from_utf8_lossy(&output.stdout);
-    //     println!("Output: {}", result);
-    // }
+        let result = String::from_utf8_lossy(&output.stdout);
+        println!("Output: {}", result);
+    }
 
-    // #[tokio::test]
-    // async fn run_rsearch() {
-    //     let api_config: HashMap<String, String> = ApiConfig::read_config().unwrap().into_iter().collect();
+    #[cfg(feature = "requires_config")]
+    #[tokio::test]
+    async fn run_rsearch() {
+        let api_config: HashMap<String, String> = ApiConfig::read_config().unwrap().into_iter().collect();
 
-    //     // let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
-    //     let google_api_key = api_config.get(&ApiKeys::Google.as_str()).expect("Google search API key is not available");
-    //     let google_search_engine_id = api_config.get(&ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
+        // let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
+        let google_api_key = api_config.get(&ApiKeys::Google.as_str()).expect("Google search API key is not available");
+        let google_search_engine_id = api_config.get(&ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
 
-    //     let q = "What are Flow based Diffusion Models?";
-    //     // Get the initial responses from the google API
-    //     let out = google_search(
-    //         &google_api_key,
-    //         &google_search_engine_id,
-    //         q,
-    //         "",
-    //     ).await
-    //     .unwrap();
+        let q = "What are Flow based Diffusion Models?";
+        // Get the initial responses from the google API
+        let out = google_search(
+            &google_api_key,
+            &google_search_engine_id,
+            q,
+            "",
+        ).await
+        .unwrap();
 
-    //     let urls: Vec<_> = out.iter().map(|a|{
-    //         match a {
-    //             RawOuts::RawGoogleOut((_, links)) => links.to_owned(),
-    //             _ => "".to_string()
-    //         }
-    //     }).collect();
+        let urls: Vec<_> = out.iter().map(|a|{
+            match a {
+                RawOuts::RawGoogleOut((_, links)) => links.to_owned(),
+                _ => "".to_string()
+            }
+        }).collect();
 
-    //     // GET the initial URls
-    //     println!("URLS => {:?}", urls);
+        // GET the initial URls
+        println!("URLS => {:?}", urls);
 
-    //     let mut con = Context::new();
-    //     // Use the url -> Markdown converter
-    //     // for url in urls {
-    //     //     con.add(&url, q).await.unwrap()
-    //     // }
-    //     con.add(&urls[0..3], q).await.unwrap();
-    //     //TODO: Maybe we can collect all the futures and run the python process parallely to get all the markdowns simultaneously
-    //     println!("{:?}", con);
+        let mut con = Context::new();
+        // Use the url -> Markdown converter
+        // for url in urls {
+        //     con.add(&url, q).await.unwrap()
+        // }
+        con.add(&urls[0..3], q).await.unwrap();
+        //TODO: Maybe we can collect all the futures and run the python process parallely to get all the markdowns simultaneously
+        println!("{:?}", con);
         
-    // }
-// }
+    }
+}
