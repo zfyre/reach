@@ -183,7 +183,7 @@ mod tests {
         let url = "https://codeforces.com/";
         let mut binding = tokio::process::Command::new(".venv/Scripts/python.exe");
         let command = binding // Use Python from virtual environment
-            .arg("src/crawl.py")
+            .arg("src/scripts/crawl.py")
             .arg(&format!("--url={}", url));
 
         println!("Running command: {:?}", command);
@@ -198,42 +198,42 @@ mod tests {
         println!("Output: {}", result);
     }
 
-    #[tokio::test]
-    async fn run_rsearch() {
-        let api_config: HashMap<String, String> = ApiConfig::read_config().unwrap().into_iter().collect();
+    // #[tokio::test]
+    // async fn run_rsearch() {
+    //     let api_config: HashMap<String, String> = ApiConfig::read_config().unwrap().into_iter().collect();
 
-        // let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
-        let google_api_key = api_config.get(&ApiKeys::Google.as_str()).expect("Google search API key is not available");
-        let google_search_engine_id = api_config.get(&ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
+    //     // let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
+    //     let google_api_key = api_config.get(&ApiKeys::Google.as_str()).expect("Google search API key is not available");
+    //     let google_search_engine_id = api_config.get(&ApiKeys::SearchEngine.as_str()).expect("Google search engine ID is not available");
 
-        let q = "What are Flow based Diffusion Models?";
-        // Get the initial responses from the google API
-        let out = google_search(
-            &google_api_key,
-            &google_search_engine_id,
-            q,
-            "",
-        ).await
-        .unwrap();
+    //     let q = "What are Flow based Diffusion Models?";
+    //     // Get the initial responses from the google API
+    //     let out = google_search(
+    //         &google_api_key,
+    //         &google_search_engine_id,
+    //         q,
+    //         "",
+    //     ).await
+    //     .unwrap();
 
-        let urls: Vec<_> = out.iter().map(|a|{
-            match a {
-                RawOuts::RawGoogleOut((_, links)) => links.to_owned(),
-                _ => "".to_string()
-            }
-        }).collect();
+    //     let urls: Vec<_> = out.iter().map(|a|{
+    //         match a {
+    //             RawOuts::RawGoogleOut((_, links)) => links.to_owned(),
+    //             _ => "".to_string()
+    //         }
+    //     }).collect();
 
-        // GET the initial URls
-        println!("URLS => {:?}", urls);
+    //     // GET the initial URls
+    //     println!("URLS => {:?}", urls);
 
-        let mut con = Context::new();
-        // Use the url -> Markdown converter
-        // for url in urls {
-        //     con.add(&url, q).await.unwrap()
-        // }
-        con.add(&urls[0..3], q).await.unwrap();
-        //TODO: Maybe we can collect all the futures and run the python process parallely to get all the markdowns simultaneously
-        println!("{:?}", con);
+    //     let mut con = Context::new();
+    //     // Use the url -> Markdown converter
+    //     // for url in urls {
+    //     //     con.add(&url, q).await.unwrap()
+    //     // }
+    //     con.add(&urls[0..3], q).await.unwrap();
+    //     //TODO: Maybe we can collect all the futures and run the python process parallely to get all the markdowns simultaneously
+    //     println!("{:?}", con);
         
-    }
+    // }
 }

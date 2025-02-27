@@ -8,7 +8,6 @@ use tokio;
 use clap::Parser;
 use std::str::FromStr;
 use std::collections::HashMap;
-use rsearch::Rsearch;
 
 use apis::*;
 use config::*;
