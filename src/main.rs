@@ -6,8 +6,6 @@ mod errors;
 
 use tokio;
 use clap::Parser;
-// use dotenv::dotenv;
-// use std::{env, str::FromStr};
 use std::str::FromStr;
 use std::collections::HashMap;
 use rsearch::Rsearch;

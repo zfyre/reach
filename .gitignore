@@ -5,3 +5,4 @@ temp.txt
 temp2.txt
 .vscode
 .venv
+/build
