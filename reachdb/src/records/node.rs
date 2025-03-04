@@ -13,7 +13,7 @@ pub struct NodeRecord {
 }
 
 impl NodeRecord {
-    
+    // pub fn new() -> Self {}
 }
 
 impl Record for NodeRecord {

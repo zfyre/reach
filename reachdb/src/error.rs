@@ -5,6 +5,8 @@ pub enum ReachdbError {
     IoError(io::Error),
     BincodeError(bincode::Error),
     SerdeJsonError(serde_json::Error),
+    SledError(sled::Error),
+    FromUtf8Error(std::string::FromUtf8Error),
 }
 
 impl fmt::Display for ReachdbError {
@@ -13,6 +15,8 @@ impl fmt::Display for ReachdbError {
             ReachdbError::IoError(e) => write!(f, "IO Error: {}", e),
             ReachdbError::BincodeError(e) => write!(f, "Bincode Error: {}", e),
             ReachdbError::SerdeJsonError(e) => write!(f, "Serde Error: {}", e),
+            ReachdbError::SledError(e) => write!(f, "Sled Error: {}", e),
+            ReachdbError::FromUtf8Error(e) => write!(f, "FromUtf8 Error: {}", e),
         }
     }
 }
@@ -34,6 +38,17 @@ impl From<serde_json::Error> for ReachdbError {
         ReachdbError::SerdeJsonError(err)
     }
 }
+impl From<sled::Error> for ReachdbError {
+    fn from(err: sled::Error) -> Self {
+        ReachdbError::SledError(err)
+    }
+}
+impl From<std::string::FromUtf8Error> for ReachdbError {
+    fn from(err: std::string::FromUtf8Error) -> Self {
+        ReachdbError::FromUtf8Error(err)
+    }
+}
+
 
 // impl From<String> for ReachdbError {
 //     fn from(err: String) -> Self {
