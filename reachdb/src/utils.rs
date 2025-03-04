@@ -15,7 +15,7 @@ pub fn create_mmap(file_path: &str, size: usize) -> Result<MmapMut, ReachdbError
     Ok(unsafe { MmapOptions::new().map_mut(&file)? })
 }
 
-pub fn db_insert<T: serde::Serialize>(
+pub fn db_insert<T: serde::Serialize>(ring 
     db_path: &str,
     key: &str,
     val: &T,
