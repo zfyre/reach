@@ -18,9 +18,11 @@ pub async fn get_markdown(url: &str) -> Result<String, ReachError> {
 }
 
 pub fn append_to_json(value: &Value, file_path: &str) -> Result<(), ReachError> {
+
     let existing_json = if std::path::Path::new(file_path).exists() {
         std::fs::read_to_string(file_path)?
     } else {
+        std::fs::create_dir_all(file_path)?;
         "{}".to_string()
     };
 

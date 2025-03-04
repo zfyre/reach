@@ -28,3 +28,12 @@ pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<Vec<RawOu
     Ok(vec![RawOuts::RawGeminiOut(res)])
     // There is some metadata in the output as well!
 }
+
+
+/*
+Things to look at:
+
+- Temperature in the response of LLM, do we keep it 0 to allows deterministic output for an input?
+
+
+*/

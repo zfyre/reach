@@ -1,6 +1,6 @@
 /// 1. File to configure the Research module using google search, gemini search and Arxive search
 /// 2. Handles the search even if Api key is not provided using only Arxiv search : LATER!!
-use super::{gemini_query, google_search, ApiConfig, ApiKeys, HashMap, RawOuts, ReachError, Value, };
+use super::{gemini_query, google_search, ApiConfig, ApiKeys, HashMap, RawOuts, ReachError, Value, Regex};
 use crate::rsearch::utils::{append_to_json, get_markdown};
 
 // TODO: Make a struct where we already initialze the api-config during intialization
@@ -40,7 +40,7 @@ async fn generate_websummary(query: &str, urls: &[String]) -> Result<Value, Reac
     for url in urls {
         println!("Getting the Markdown for URL= {}", url);
         let md = get_markdown(&url).await?;
-        url_to_md.insert(url, md);
+        url_to_md.insert(url, md);z
     }
     // TODO: Cache this url_to_md HashMap!!
 
@@ -119,7 +119,7 @@ async fn generate_webkg(query: &str, url: &str, md: &str) -> Result<Value, Reach
 
             1. Extract and synthesize information specifically relevant to: Query = {}
             2. Create a focused knowledge graph for this question. Include only the most important elements:
-                - Key Concepts (6-12 main concepts)
+                - Key Concepts (2-3 main concepts)
                 - If the Concepts are mathematical or Logical, include them as well
 
             3. Essential Relationships (using only these types):
@@ -157,13 +157,13 @@ async fn generate_webkg(query: &str, url: &str, md: &str) -> Result<Value, Reach
         .split("[split]")
         .collect();
 
-    println!("{response_str:?}");
+    // println!("{response_str:?}");
 
     let mut edges = Vec::new();
     for edge_str in response_str {
         let edge = edge_str.trim();
         println!("{edge:?}");
-        let re = regex::Regex::new(r"\[([^\]]+)\]-\[([^\]]+)\]->\[([^\]]+)\]").unwrap();
+        let re = Regex::new(r"\[([^\]]+)\]-\[([^\]]+)\]->\[([^\]]+)\]").unwrap();
         if let Some(captures) = re.captures(edge) {
             if captures.len() == 4 {
             edges.push((
@@ -174,7 +174,7 @@ async fn generate_webkg(query: &str, url: &str, md: &str) -> Result<Value, Reach
             }
         }
     }
-    println!("{edges:?}");
+    // println!("{edges:?}");
     let response: Value = {
         let mut map = serde_json::Map::new();
         map.insert(
@@ -199,6 +199,47 @@ async fn generate_webkg(query: &str, url: &str, md: &str) -> Result<Value, Reach
 
     Ok(response)
 }
+
+/// Generates the Context for the next query
+/// # IMP `The query can be user decided new query or the initial query`
+async fn get_context_for_next_query_from_kg(query: &str, num_steps: i8, num_queries: i8) -> Result<Vec<String>, ReachError> {
+    // Extract the Recent Extracted Concepts & Relationships that is the recent Edges
+
+    // Use these Concepts to perform a random walk on KG for R steps
+
+    // Get the Context for the next query
+
+    // Return the next possible quries
+    Ok(vec!["".to_string()])
+}
+
+async fn build_kg_iterativiely(query: &str, num_iter: i16, _ftype: &str) -> Result<(), ReachError> {
+
+    for itr in 0..num_iter {
+
+        let _next_queries = match itr {
+            0 => vec![query.to_string()],
+            _ => get_context_for_next_query_from_kg(query, 2, 3).await?,
+        };
+        
+        todo!("Allow user to edit/choose the next query from the list of next_queries");
+
+        for query in &_next_queries {
+            let urls = get_relevent_urls(&query, "").await?;
+            println!("{urls:?}");
+
+            for url in &urls {
+                println!("Calling generate_webkg for url: {:?}", url);
+                let md = get_markdown(&url).await?;
+                let _kg = generate_webkg(&query, &url, &md).await?;
+                println!("generate_webkg completed!");
+            }
+        }
+    }
+
+    Ok(())
+}
+
 
 mod tests {
     // use std::{collections::{linked_list, HashMap}, fmt::format};
@@ -264,7 +305,7 @@ mod tests {
         Ok(())
     }
     
-    #[cfg(feature = "requires_config")]
+    // #[cfg(feature = "requires_config")]
     #[tokio::test]
     async fn test_kg_gen() -> Result<(), super::ReachError> {
         let query = "What are Diffusion Models?";

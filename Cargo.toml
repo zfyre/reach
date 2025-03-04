@@ -1,6 +1,6 @@
 [package]
 name = "reach-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [features]
@@ -9,6 +9,11 @@ requires_config = []
 [[bin]]
 name = "reach"
 path = "src/main.rs"
+
+[workspace]
+members = [
+    "reachdb",
+]
 
 [dependencies]
 clap = { version = "4.5.28", features = ["derive"] }
@@ -20,3 +25,4 @@ colored = "3.0.0"
 termimad = "0.31.2"
 scraper = "0.22.0"
 regex = "1.11.1"
+reachdb = { path = "reachdb" }

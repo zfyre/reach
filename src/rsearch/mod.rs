@@ -14,7 +14,6 @@ use crate::{
     errors::ReachError,
     config::{ApiConfig, ApiKeys},
 };
-use utils::get_markdown;
 
 #[derive(Parser, Debug)]
 pub struct Rsearch {}
