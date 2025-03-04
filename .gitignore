@@ -6,6 +6,7 @@
 .venv
 .env
 *.json
+*.db
 
 temp.txt
 temp2.txt

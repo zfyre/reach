@@ -17,18 +17,16 @@ impl NodeRecord {
 }
 
 impl Record for NodeRecord {
-    fn read(mmap: &MmapMut, id: u64) -> Result<Self, ReachdbError>
+    fn read(mmap: &MmapMut, offset: usize) -> Result<Self, ReachdbError>
     where
         Self: Sized,
     {   
-        let offset = id as usize * Self::record_size();
         let end = offset + Self::record_size();
         let data = &mmap[offset..end];
         Ok(bincode::deserialize(data)?)
     }
 
-    fn write(&self, mmap: &mut MmapMut) -> Result<(), ReachdbError> {
-        let offset = self.id as usize * Self::record_size();
+    fn write(&self, mmap: &mut MmapMut, offset: usize) -> Result<(), ReachdbError> {
         let encoded = bincode::serialize(self)?;
         let end = self.id as usize * Self::record_size() + encoded.len();
 
@@ -61,7 +59,23 @@ mod tests {
                         first_relationship_offset: i*2,
                         first_property_offset: i*i,
                     };
-                    node.write(&mut mmap).unwrap();
+                    let offset = i as usize * NodeRecord::record_size();
+                    node.write(&mut mmap, offset).unwrap();
+                }
+            // mmap will be flushed and dropped here
+        }
+
+        // Create file and write node to a different offset
+        {
+            let mut mmap = create_mmap(file_path, 4096).unwrap();
+                for i in 100..105 {
+                    let node = super::NodeRecord {
+                        id: i,
+                        first_relationship_offset: i*2,
+                        first_property_offset: i*i,
+                    };
+                    let offset = i as usize * NodeRecord::record_size();
+                    node.write(&mut mmap, offset).unwrap();
                 }
             // mmap will be flushed and dropped here
         }
@@ -77,8 +91,9 @@ mod tests {
                     .map_mut(&file)
                     .unwrap()
             };
-            for i in 0..100 {
-                let read_node = NodeRecord::read(&mmap, i).unwrap();
+            for i in 0..105 {
+                let offset = i as usize * NodeRecord::record_size();
+                let read_node = NodeRecord::read(&mmap, offset).unwrap();
 
                 assert_eq!(read_node.id, i);
                 assert_eq!(read_node.first_relationship_offset, i*2);
