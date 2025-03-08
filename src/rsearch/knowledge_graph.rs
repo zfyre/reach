@@ -40,7 +40,7 @@ async fn generate_websummary(query: &str, urls: &[String]) -> Result<Value, Reac
     for url in urls {
         println!("Getting the Markdown for URL= {}", url);
         let md = get_markdown(&url).await?;
-        url_to_md.insert(url, md);z
+        url_to_md.insert(url, md);
     }
     // TODO: Cache this url_to_md HashMap!!
 
@@ -162,7 +162,7 @@ async fn generate_webkg(query: &str, url: &str, md: &str) -> Result<Value, Reach
     let mut edges = Vec::new();
     for edge_str in response_str {
         let edge = edge_str.trim();
-        println!("{edge:?}");
+        println!("{edge:#?}");
         let re = Regex::new(r"\[([^\]]+)\]-\[([^\]]+)\]->\[([^\]]+)\]").unwrap();
         if let Some(captures) = re.captures(edge) {
             if captures.len() == 4 {
@@ -310,7 +310,7 @@ mod tests {
     async fn test_kg_gen() -> Result<(), super::ReachError> {
         let query = "What are Diffusion Models?";
         let urls = super::get_relevent_urls(&query, "").await?;
-        println!("{urls:?}");
+        println!("{urls:#?}");
 
         for url in &urls {
             println!("Calling generate_webkg for url: {:?}", url);

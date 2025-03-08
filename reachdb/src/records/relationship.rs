@@ -12,6 +12,48 @@ pub struct RelationshipRecord {
     pub next_relationship_offset: u64,
 }
 
+// impl RelationshipRecord {
+//     pub fn get_id(&self) -> String {
+//         format!("{} -> {}", self.source_id, self.target_id)
+//     }
+//     pub fn get_relation(&self, db_path: &str) -> Result<String, ReachdbError> {
+//         let id = self.get_id();
+
+//         let db = sled::open(db_path)?;
+
+//         // Check if the String is already mapped
+//         if let Some(id_bytes) = db.get(id)? {
+//             let id = bincode::deserialize::<u64>(&id_bytes)?;
+//             return Ok(id);
+//         }
+
+//         // Reterieve and update the counter
+//         let counter_key = "$COUNTER";
+//         let new_id = match db.get(counter_key)? {
+//             Some(value) => {
+//                 let current_id = bincode::deserialize::<u64>(&value)?;
+//                 current_id + 1
+//             },
+//             None => 0,
+//         };
+
+//         // Insert the mapping: string -> new_id, and update the counter.
+//         db.insert(node_name, bincode::serialize(&new_id)?)?;
+//         db.insert(counter_key, bincode::serialize(&new_id)?)?;
+//         db.flush()?; // Ensure data is persisted
+        
+//         Ok(new_id)
+//     }
+//     pub fn new(source_id: u64, target_id: u64) -> Self {
+//         Self {
+//             source_id,
+//             target_id,
+//             first_property_offset: 0,
+//             next_relationship_offset: 0,
+//         }
+//     }
+// }
+
 impl Record for RelationshipRecord {
     fn read(mmap: &MmapMut, offset: usize) -> Result<Self, ReachdbError>
     where

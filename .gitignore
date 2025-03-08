@@ -1,6 +1,7 @@
 /target
 /build
 /src/bin
+/data
 
 .vscode
 .venv

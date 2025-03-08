@@ -1,5 +1,6 @@
 pub mod records;
 pub mod algorithms;
 
-pub mod error;
+pub mod errors;
 pub mod utils;
+pub mod data_base;

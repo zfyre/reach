@@ -3,7 +3,7 @@ pub mod relationship;
 
 use super::{
     utils::create_mmap,
-    error::ReachdbError,
+    errors::ReachdbError,
 };
 use memmap2::MmapMut;
 

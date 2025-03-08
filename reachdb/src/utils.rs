@@ -1,4 +1,4 @@
-use super::error::ReachdbError;
+use super::errors::ReachdbError;
 use memmap2::{MmapMut, MmapOptions};
 use std::fs::OpenOptions;
 
@@ -15,11 +15,8 @@ pub fn create_mmap(file_path: &str, size: usize) -> Result<MmapMut, ReachdbError
     Ok(unsafe { MmapOptions::new().map_mut(&file)? })
 }
 
-pub fn db_insert<T: serde::Serialize>(ring 
-    db_path: &str,
-    key: &str,
-    val: &T,
-) -> Result<(), ReachdbError> {
+/// Insert/Update a key-value pair into the database, for a given database path.
+pub fn db_insert<T: serde::Serialize>(db_path: &str, key: &str, val: &T) -> Result<(), ReachdbError> {
     let db = sled::open(db_path)?;
     let val = bincode::serialize(val)?;
 
@@ -32,6 +29,7 @@ pub fn db_insert<T: serde::Serialize>(ring
     Ok(())
 }
 
+/// Retrieve a value from the database by its key, for a given database path.
 pub fn db_get<T>(db_path: &str, key: &str) -> Result<(), ReachdbError> {
     let db = sled::open(db_path)?;
     // Retrieve a value by its key.
