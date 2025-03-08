@@ -29,44 +29,6 @@ impl NodeRecord {
         self.first_property_offset = first_property_offset.unwrap_or(self.first_property_offset);
     } 
 }
-// /// Create a db instance for storing the nodes-str to id and also the count of nodes
-// impl NodeRecord {
-//     fn assign_id(db_path: &str, node_name: &str) -> Result<u64, ReachdbError> {
-        
-//         let db = sled::open(db_path)?;
-
-//         // Check if the String is already mapped
-//         if let Some(id_bytes) = db.get(node_name)? {
-//             let id = bincode::deserialize::<u64>(&id_bytes)?;
-//             return Ok(id);
-//         }
-
-//         // Reterieve and update the counter
-//         let counter_key = "$COUNTER";
-//         let new_id = match db.get(counter_key)? {
-//             Some(value) => {
-//                 let current_id = bincode::deserialize::<u64>(&value)?;
-//                 current_id + 1
-//             },
-//             None => 0,
-//         };
-
-//         // Insert the mapping: string -> new_id, and update the counter.
-//         db.insert(node_name, bincode::serialize(&new_id)?)?;
-//         db.insert(counter_key, bincode::serialize(&new_id)?)?;
-//         db.flush()?; // Ensure data is persisted
-        
-//         Ok(new_id)
-//     }
-//     pub fn new(db_path: &str, node_name: &str) -> Result<Self, ReachdbError> {
-//         let id = Self::assign_id(db_path, node_name)?;
-//         Ok(Self {
-//             id,
-//             first_relationship_offset: NULL_OFFSET,
-//             first_property_offset: NULL_OFFSET,
-//         })
-//     }
-// }
 
 
 impl Record for NodeRecord {

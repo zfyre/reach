@@ -3,10 +3,14 @@
 use std::result::Result;
 use crate::{errors::ReachdbError, records::{node::NodeRecord, relationship::RelationshipRecord, Record}, utils::create_mmap};
 use log::info;
-use memmap2::{Mmap, MmapMut};
+use memmap2::MmapMut;
+
+trait UserDefinedRelationType {
+    fn get_type_id(relation: &str) -> Option<u64>;
+}
 
 /// Stores all the metadata for a particular session
-pub struct Reachdb {
+pub struct Reachdb<E: UserDefinedRelationType> {
     node_mmap_size: usize,
     relationship_mmap_size: usize,
     node_mmap: Option<MmapMut>,
@@ -14,9 +18,11 @@ pub struct Reachdb {
     // Metadata
     node_count: u64,
     relationship_count: u64,
+
+    _marker: std::marker::PhantomData<E>, // We don't store `E`, but we want to enforce the trait
 }
 
-impl Reachdb {
+impl<E: UserDefinedRelationType> Reachdb<E> {
     pub fn new() -> Result<Self, ReachdbError> {        
         Ok(Self {
             node_mmap_size: 4096,
@@ -26,6 +32,7 @@ impl Reachdb {
             // Metadata
             node_count: 0,
             relationship_count: 0,
+            _marker: std::marker::PhantomData,
         })
     }
 
@@ -124,7 +131,7 @@ impl Reachdb {
         Ok(relation_offset)
     }
 
-    fn add_relation(&mut self, src_id: &u64, tgt_id: &u64, relation_str: &str) -> Result<(), ReachdbError> {
+    fn add_relation(&mut self, src_id: &u64, tgt_id: &u64, type_id: &u64) -> Result<(), ReachdbError> {
 
         let node_mmap = self.node_mmap.as_mut().expect("Mmap not initialized");
         let mut src_node = NodeRecord::read(node_mmap, *src_id)?;
@@ -139,6 +146,7 @@ impl Reachdb {
         let _relation = RelationshipRecord::new(
             *src_id,
             *tgt_id,
+            *type_id,
             None,
             None,
             Some(prev_src_relation_offset),
@@ -153,11 +161,25 @@ impl Reachdb {
 
     }
 
-    fn if_edge_exists(&self) -> Result<bool, ReachdbError> {
-        todo!("Check if the edge already exists");
+    fn if_edge_exists(&self, src_id: &u64, tgt_id: &u64) -> Result<bool, ReachdbError> {
+        let node_mmap = self.node_mmap.as_ref().expect("Mmap not initialized");
+        let src_node = NodeRecord::read(node_mmap, *src_id)?;
+
+        let exists = RelationshipRecord::into_source_iter(
+            node_mmap,
+            src_node.first_relationship_offset
+        ).any(|rel| {
+            if let Ok(rel) = rel {
+                rel.target_id == *tgt_id
+            } else {
+                false
+            }
+        });
+
+        todo!("Add the check of relation_type as well");
     }
 
-    pub fn get_node_id(&mut self, node: &str) -> Result<u64, ReachdbError> {
+    fn get_node_id(&mut self, node: &str) -> Result<u64, ReachdbError> {
 
         let db = sled::open(Self::get_db_path().0)?;
 
@@ -179,13 +201,18 @@ impl Reachdb {
         Ok(new_id)
     }
 
+    fn get_type_id(relation: &str) -> Option<u64> {
+        E::get_type_id(relation)
+    }
+
     pub fn add_edge(&mut self, source: &str, target: &str, relationship: &str) -> Result<(), ReachdbError> {
         let src_id = self.get_node_id(source)?;
         let tgt_id = self.get_node_id(target)?;
+        let type_id = Self::get_type_id(relationship).expect("Relation type not found");
 
-        if !self.if_edge_exists()? {
+        if !self.if_edge_exists(&src_id, &tgt_id)? {
             // Add the relationship
-            self.add_relation(&src_id, &tgt_id, relationship)?;
+            self.add_relation(&src_id, &tgt_id, &type_id)?;
         }
         info!("Added Edge: \"{}\"(id:{}) - [{}] -> \"{}\"(id:{})", source, src_id, relationship, target, tgt_id);
 
