@@ -12,8 +12,8 @@ pub const NULL_OFFSET: u64 = u64::MAX;
 
 // Trait for a record that can be written to a memory-mapped file
 pub trait Record {
-    fn write(&self, mmap: &mut MmapMut, offset: usize) -> Result<(), ReachdbError>;
-    fn read(mmap: &MmapMut, offset: usize) -> Result<Self, ReachdbError>
+    fn write(&self, mmap: &mut MmapMut, id: u64) -> Result<(), ReachdbError>;
+    fn read(mmap: &MmapMut, id: u64) -> Result<Self, ReachdbError>
     where
         Self: Sized;
 
@@ -23,6 +23,7 @@ pub trait Record {
     {
         std::mem::size_of::<Self>()
     }
+    fn id2offset(id: u64) -> usize;
 }
 
 // #[cfg(test)]
