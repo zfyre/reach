@@ -1,10 +1,7 @@
 pub mod node;
 pub mod relationship;
 
-use super::{
-    utils::create_mmap,
-    errors::ReachdbError,
-};
+use super::errors::ReachdbError;
 use memmap2::MmapMut;
 
 // Define a constant to represent a null offset for node & relationship records

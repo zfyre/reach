@@ -2,10 +2,9 @@
 
 use std::result::Result;
 use crate::{errors::ReachdbError, records::{node::NodeRecord, relationship::RelationshipRecord, Record, NULL_OFFSET}, utils::create_mmap};
-use log::{info, debug, trace};
+use log::{info, debug};
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
-use serde_json::map::Iter;
 
 pub trait UserDefinedRelationType {
     fn get_type_id(relation: &str) -> Option<Self> where Self: Sized;
