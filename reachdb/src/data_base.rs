@@ -5,6 +5,7 @@ use crate::{errors::ReachdbError, records::{node::NodeRecord, relationship::Rela
 use log::{info, debug, trace};
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
+use serde_json::map::Iter;
 
 pub trait UserDefinedRelationType {
     fn get_type_id(relation: &str) -> Option<Self> where Self: Sized;
@@ -247,11 +248,10 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
         let relation_mmap = self.relation_mmap.as_ref().expect("RelationMmap not initialized");
         let src_node = NodeRecord::read(node_mmap, *src_id)?;
         debug!("SRC_NODE inloop: {src_node:#?}");
-        if src_node.first_relationship_id == NULL_OFFSET {
-            return Ok(false);
-        }
-        let exists = RelationshipRecord::into_source_iter(
+
+        let exists = RelationshipRecord::into_iter(
             relation_mmap,
+            src_id,
             src_node.first_relationship_id
         ).any(|rel| {
             // debug!("RelRec inloop: {rel:#?}");

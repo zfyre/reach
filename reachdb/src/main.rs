@@ -51,7 +51,7 @@ fn main() -> Result<(), ReachdbError> {
     let mut db = Reachdb::<TypeId>::open("data", Some(10000), Some(10000))?;
 
     let data = get_data().unwrap();
-    db.print_graph()?;
+    // db.print_graph()?;
     for (url, edges) in data.as_object().unwrap() {
         trace!("url: {}", url);
         for edge in edges.as_array().unwrap() {
@@ -62,7 +62,7 @@ fn main() -> Result<(), ReachdbError> {
             db.add_edge(source, target, relationship)?;            
         }
     }
-    db.print_graph()?;
+    // db.print_graph()?;
     db.close()?;    
     Ok(())
 }
