@@ -8,7 +8,8 @@ use super::{
 use memmap2::MmapMut;
 
 // Define a constant to represent a null offset for node & relationship records
-pub const NULL_OFFSET: u64 = u64::MAX;
+// pub const NULL_OFFSET: u64 = u64::MAX;
+pub const NULL_OFFSET: u64 = 100;
 
 // Trait for a record that can be written to a memory-mapped file
 pub trait Record {

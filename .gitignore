@@ -2,6 +2,7 @@
 /build
 /src/bin
 /data
+/tempdata
 
 .vscode
 .venv

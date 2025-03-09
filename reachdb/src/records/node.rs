@@ -8,25 +8,25 @@ use super::{ReachdbError, Record, NULL_OFFSET};
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct NodeRecord {
     pub id: u64,
-    pub first_relationship_offset: u64,
-    pub first_property_offset: u64,
+    pub first_relationship_id: u64,
+    pub first_property_id: u64,
 }
 
 impl NodeRecord {
     pub fn new(id: u64) -> Self {
         Self {
             id,
-            first_relationship_offset: NULL_OFFSET,
-            first_property_offset: NULL_OFFSET,
+            first_relationship_id: NULL_OFFSET,
+            first_property_id: NULL_OFFSET,
         }
     }
     pub fn update(
         &mut self,
-        first_relationship_offset: Option<u64>,
-        first_property_offset: Option<u64>,
+        first_relationship_id: Option<u64>,
+        first_property_id: Option<u64>,
     ) {
-        self.first_relationship_offset = first_relationship_offset.unwrap_or(self.first_relationship_offset);
-        self.first_property_offset = first_property_offset.unwrap_or(self.first_property_offset);
+        self.first_relationship_id = first_relationship_id.unwrap_or(self.first_relationship_id);
+        self.first_property_id = first_property_id.unwrap_or(self.first_property_id);
     } 
 }
 
@@ -53,7 +53,10 @@ impl Record for NodeRecord {
         Ok(())
     }
     fn id2offset(id: u64) -> usize {
-        id as usize * Self::record_size()
+        match id {
+            NULL_OFFSET => id as usize,
+            _ => id as usize * Self::record_size()
+        }
     }
 
 }
@@ -77,8 +80,8 @@ mod tests {
             for i in 0..100 {
                 let node = super::NodeRecord {
                     id: i,
-                    first_relationship_offset: i*2,
-                    first_property_offset: i*i,
+                    first_relationship_id: i*2,
+                    first_property_id: i*i,
                 };
                 node.write(&mut mmap, i).unwrap();
             }
@@ -91,8 +94,8 @@ mod tests {
             for i in 100..105 {
                 let node = super::NodeRecord {
                     id: i,
-                    first_relationship_offset: i*2,
-                    first_property_offset: i*i,
+                    first_relationship_id: i*2,
+                    first_property_id: i*i,
                 };
                 node.write(&mut mmap, i).unwrap();
             }
@@ -114,8 +117,8 @@ mod tests {
                 let read_node = NodeRecord::read(&mmap, i).unwrap();
 
                 assert_eq!(read_node.id, i);
-                assert_eq!(read_node.first_relationship_offset, i*2);
-                assert_eq!(read_node.first_property_offset, i*i);
+                assert_eq!(read_node.first_relationship_id, i*2);
+                assert_eq!(read_node.first_property_id, i*i);
             }
         }
 

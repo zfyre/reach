@@ -1,4 +1,5 @@
 use bincode;
+use log::trace;
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
 
@@ -8,12 +9,12 @@ use super::{ReachdbError, Record, NULL_OFFSET};
 pub struct RelationshipRecord {
     pub source_id: u64,
     pub target_id: u64,   
-    pub type_id: u64,
-    pub first_property_offset: u64,
-    next_src_relationship_offset: u64,
-    prev_src_relationship_offset: u64,
-    next_tgt_relationship_offset: u64,
-    prev_tgt_relationship_offset: u64,
+    pub type_id: u8,
+    pub first_property_id: u64,
+    next_src_relationship_id: u64,
+    prev_src_relationship_id: u64,
+    next_tgt_relationship_id: u64,
+    prev_tgt_relationship_id: u64,
 }
 
 impl Record for RelationshipRecord {
@@ -27,6 +28,7 @@ impl Record for RelationshipRecord {
         Ok(bincode::deserialize(data)?)
     }
     fn write(&self, mmap: &mut MmapMut, id: u64) -> Result<(), ReachdbError> {
+
         let offset = Self::id2offset(id);
         let encoded = bincode::serialize(self)?;
         let end = offset + encoded.len();
@@ -36,7 +38,10 @@ impl Record for RelationshipRecord {
         Ok(())
     }
     fn id2offset(id: u64) -> usize {
-        id as usize
+        match id {
+            NULL_OFFSET => id as usize,
+            _ => id as usize * Self::record_size()
+        }
     }
 }
 
@@ -44,22 +49,22 @@ impl RelationshipRecord {
     pub fn new(
         source_id: u64,
         target_id: u64,
-        type_id: u64,
-        first_property_offset: Option<u64>,
-        next_src_relationship_offset: Option<u64>,
-        prev_src_relationship_offset: Option<u64>,
-        next_tgt_relationship_offset: Option<u64>,
-        prev_tgt_relationship_offset: Option<u64>,
+        type_id: u8,
+        first_property_id: Option<u64>,
+        next_src_relationship_id: Option<u64>,
+        prev_src_relationship_id: Option<u64>,
+        next_tgt_relationship_id: Option<u64>,
+        prev_tgt_relationship_id: Option<u64>,
         ) -> Self {
         Self {
             source_id,
             target_id,
             type_id,
-            first_property_offset: first_property_offset.unwrap_or(NULL_OFFSET),
-            next_src_relationship_offset: next_src_relationship_offset.unwrap_or(NULL_OFFSET),
-            prev_src_relationship_offset: prev_src_relationship_offset.unwrap_or(NULL_OFFSET),
-            next_tgt_relationship_offset: next_tgt_relationship_offset.unwrap_or(NULL_OFFSET),
-            prev_tgt_relationship_offset: prev_tgt_relationship_offset.unwrap_or(NULL_OFFSET),
+            first_property_id: first_property_id.unwrap_or(NULL_OFFSET),
+            next_src_relationship_id: next_src_relationship_id.unwrap_or(NULL_OFFSET),
+            prev_src_relationship_id: prev_src_relationship_id.unwrap_or(NULL_OFFSET),
+            next_tgt_relationship_id: next_tgt_relationship_id.unwrap_or(NULL_OFFSET),
+            prev_tgt_relationship_id: prev_tgt_relationship_id.unwrap_or(NULL_OFFSET),
         }
     }
     
@@ -67,40 +72,44 @@ impl RelationshipRecord {
         &mut self,
         // source_id: Option<u64>,
         // target_id: Option<u64>,
-        first_property_offset: Option<u64>,
-        next_src_relationship_offset: Option<u64>,
-        prev_src_relationship_offset: Option<u64>,
-        next_tgt_relationship_offset: Option<u64>,
-        prev_tgt_relationship_offset: Option<u64>,
+        first_property_id: Option<u64>,
+        next_src_relationship_id: Option<u64>,
+        prev_src_relationship_id: Option<u64>,
+        next_tgt_relationship_id: Option<u64>,
+        prev_tgt_relationship_id: Option<u64>,
     ) {
         // self.source_id = source_id.unwrap_or(self.source_id);
         // self.target_id = target_id.unwrap_or(self.target_id);
         // self.type_id = type_id.unwrap_or(self.type_id);
-        self.first_property_offset = first_property_offset.unwrap_or(self.first_property_offset);
-        self.next_src_relationship_offset = next_src_relationship_offset.unwrap_or(self.next_src_relationship_offset);
-        self.prev_src_relationship_offset = prev_src_relationship_offset.unwrap_or(self.prev_src_relationship_offset);
-        self.next_tgt_relationship_offset = next_tgt_relationship_offset.unwrap_or(self.next_tgt_relationship_offset);
-        self.prev_tgt_relationship_offset = prev_tgt_relationship_offset.unwrap_or(self.prev_tgt_relationship_offset);
+        self.first_property_id = first_property_id.unwrap_or(self.first_property_id);
+        self.next_src_relationship_id = next_src_relationship_id.unwrap_or(self.next_src_relationship_id);
+        self.prev_src_relationship_id = prev_src_relationship_id.unwrap_or(self.prev_src_relationship_id);
+        self.next_tgt_relationship_id = next_tgt_relationship_id.unwrap_or(self.next_tgt_relationship_id);
+        self.prev_tgt_relationship_id = prev_tgt_relationship_id.unwrap_or(self.prev_tgt_relationship_id);
     }
 
     /// Initializes an iterator externally by providing `current_offset` and `mmap`
-    pub fn into_source_iter<'a>(mmap: &'a MmapMut, current_offset: u64) -> RelationshipSourceIterator<'a> {
+    pub fn into_source_iter<'a>(mmap: &'a MmapMut, current_id: u64) -> RelationshipSourceIterator<'a> {
         RelationshipSourceIterator {
-            current_offset,
+            initial_id: current_id,
+            current_id,
+            visited_prev: false,
             mmap,
         }
     }
     /// Initializes an iterator externally by providing `current_offset` and `mmap`
-    pub fn into_target_iter<'a>(mmap: &'a MmapMut, current_offset: u64) -> RelationshipTargetIterator<'a> {
+    pub fn into_target_iter<'a>(mmap: &'a MmapMut, current_id: u64) -> RelationshipTargetIterator<'a> {
         RelationshipTargetIterator {
-            current_offset,
+            current_id,
             mmap,
         }
     }
 }
 
 pub struct RelationshipSourceIterator<'a> {
-    current_offset: u64,
+    initial_id: u64,
+    current_id: u64,
+    visited_prev: bool, // Tracks if we finished iterating in the prev direction
     mmap: &'a MmapMut,
 }
 
@@ -108,33 +117,54 @@ impl<'a> Iterator for RelationshipSourceIterator<'a> {
     type Item = Result<RelationshipRecord, ReachdbError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current_offset == NULL_OFFSET {
-            return None;
+        trace!("REL-ID: {}", self.current_id);
+        
+        // If current_id is NULL_OFFSET, check if we should switch to next direction
+        if self.current_id == NULL_OFFSET {
+            if !self.visited_prev {
+                trace!("SWITCHING TO NEXT RELATIONSHIPS FROM INITIAL ID");
+                self.visited_prev = true;
+                self.current_id = self.initial_id; // Restart from initial_id
+            } else {
+                return None; // Fully exhausted both directions
+            }
         }
 
         // Read the current record
-        match RelationshipRecord::read(self.mmap, self.current_offset) {
+        match RelationshipRecord::read(self.mmap, self.current_id) {
             Ok(record) => {
-                // First try to go to prev relationships, if that's NULL,
-                // switch to next relationships
-                if record.prev_src_relationship_offset != NULL_OFFSET {
-                    self.current_offset = record.prev_src_relationship_offset;
+                if !self.visited_prev {
+                    // Iterate using prev_src_relationship_id first
+                    if record.prev_src_relationship_id != NULL_OFFSET {
+                        trace!("INSIDE PREV");
+                        self.current_id = record.prev_src_relationship_id;
+                    } else {
+                        // If no more prev links, signal a switch
+                        self.current_id = NULL_OFFSET;
+                    }
                 } else {
-                    self.current_offset = record.next_src_relationship_offset;
+                    // Now iterate using next_src_relationship_id
+                    if record.next_src_relationship_id != NULL_OFFSET {
+                        trace!("INSIDE NEXT");
+                        self.current_id = record.next_src_relationship_id;
+                    } else {
+                        self.current_id = NULL_OFFSET;
+                    }
                 }
                 Some(Ok(record))
             }
             Err(e) => {
                 // Return the error and stop iteration
-                self.current_offset = NULL_OFFSET;
+                self.current_id = NULL_OFFSET;
                 Some(Err(e))
             }
         }
     }
 }
 
+
 pub struct RelationshipTargetIterator<'a> {
-    current_offset: u64,
+    current_id: u64,
     mmap: &'a MmapMut,
 }
 
@@ -142,25 +172,25 @@ impl<'a> Iterator for RelationshipTargetIterator<'a> {
     type Item = Result<RelationshipRecord, ReachdbError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current_offset == NULL_OFFSET {
+        if self.current_id == NULL_OFFSET {
             return None;
         }
 
         // Read the current record
-        match RelationshipRecord::read(self.mmap, self.current_offset) {
+        match RelationshipRecord::read(self.mmap, self.current_id) {
             Ok(record) => {
                 // First try to go to prev relationships, if that's NULL,
                 // switch to next relationships
-                if record.prev_tgt_relationship_offset != NULL_OFFSET {
-                    self.current_offset = record.prev_tgt_relationship_offset;
+                if record.prev_tgt_relationship_id != NULL_OFFSET {
+                    self.current_id = record.prev_tgt_relationship_id;
                 } else {
-                    self.current_offset = record.next_tgt_relationship_offset;
+                    self.current_id = record.next_tgt_relationship_id;
                 }
                 Some(Ok(record))
             }
             Err(e) => {
                 // Return the error and stop iteration
-                self.current_offset = NULL_OFFSET;
+                self.current_id = NULL_OFFSET;
                 Some(Err(e))
             }
         }
