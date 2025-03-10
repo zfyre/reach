@@ -5,7 +5,7 @@ use serde_json::Value;
 use reachdb::{data_base::{Reachdb, UserDefinedRelationType}, errors::ReachdbError, records::NULL_OFFSET};
 
 fn get_data() -> Result<Value, serde_json::Error> {
-    let mut f = File::open("tempdata/knowledge_graph.json")
+    let mut f = File::open("tempdata/b.json")
         .expect("Could not open file");
     let mut buf = String::new();
     let _ = f.read_to_string(&mut buf);
@@ -36,12 +36,22 @@ impl UserDefinedRelationType for TypeId {
         }
     }
 }
+impl TypeId {
+    fn from_id(id: u8) -> Self {
+        match id {
+            0 => Self::IsA(id),
+            1 => Self::RelatesTo(id),
+            2 => Self::Influences(id),
+            _ => panic!("Invalid type id")
+        }
+    }
+}
 
 fn main() -> Result<(), ReachdbError> {
 
     unsafe {
-        // env::set_var("RUST_LOG", "reachdb=trace");
-        env::set_var("RUST_LOG", "reachdb=info");
+        env::set_var("RUST_LOG", "reachdb=trace");
+        // env::set_var("RUST_LOG", "reachdb=info");
     }
     let _ = env_logger::try_init();
     trace!("NULL_OFFSET: {}", NULL_OFFSET);
@@ -50,19 +60,25 @@ fn main() -> Result<(), ReachdbError> {
     // db.prepare(Some(10000), Some(10000))?;
     let mut db = Reachdb::<TypeId>::open("data", Some(10000), Some(10000))?;
 
-    let data = get_data().unwrap();
-    // db.print_graph()?;
-    for (url, edges) in data.as_object().unwrap() {
-        trace!("url: {}", url);
-        for edge in edges.as_array().unwrap() {
-            let source = edge["source"].as_str().unwrap();
-            let target = edge["target"].as_str().unwrap();
-            let relationship = edge["relationship"].as_str().unwrap();
-            // println!("{} - {} -> {}", source, relationship, target);
-            db.add_edge(source, target, relationship)?;            
-        }
+    // let data = get_data().unwrap();
+    // // db.print_graph()?;
+    // for (url, edges) in data.as_object().unwrap() {
+    //     trace!("url: {}", url);
+    //     for edge in edges.as_array().unwrap() {
+    //         let source = edge["source"].as_str().unwrap();
+    //         let target = edge["target"].as_str().unwrap();
+    //         let relationship = edge["relationship"].as_str().unwrap();
+    //         // println!("{} - {} -> {}", source, relationship, target);
+    //         db.add_edge(source, target, relationship)?;            
+    //     }
+    // }
+
+    let path = db.random_walk(0, 10)?;
+    for rel_id in path {
+        let rel = db.get_relation(rel_id)?;
+        println!("{} --> {}: {:?}", rel.source_id, rel.target_id, TypeId::from_id(rel.type_id));
     }
-    // db.print_graph()?;
     db.close()?;    
+
     Ok(())
 }

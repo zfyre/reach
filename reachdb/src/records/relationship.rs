@@ -1,5 +1,4 @@
 use bincode;
-use log::trace;
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
 
@@ -89,11 +88,11 @@ impl RelationshipRecord {
     }
 
     /// Initializes an iterator externally by providing `current_offset` and `mmap`
-    pub fn into_iter<'a>(mmap: &'a MmapMut, node_id: &u64, current_id: u64) -> RelationshipSourceIterator<'a> {
+    pub fn into_iter<'a>(mmap: &'a MmapMut, node_id: &u64, current_id: u64) -> RelationshipIterator<'a> {
 
         if current_id == NULL_OFFSET {
             // Create an empty iterator when current_id is NULL_OFFSET
-            RelationshipSourceIterator {
+            RelationshipIterator {
             node_id: *node_id,
             initial_id: NULL_OFFSET,
             current_id: NULL_OFFSET,
@@ -101,7 +100,7 @@ impl RelationshipRecord {
             mmap,
             }
         } else {
-            RelationshipSourceIterator {
+            RelationshipIterator {
             node_id: *node_id,
             initial_id: current_id,
             current_id,
@@ -113,7 +112,7 @@ impl RelationshipRecord {
 
 }
 
-pub struct RelationshipSourceIterator<'a> {
+pub struct RelationshipIterator<'a> {
     node_id: u64,
     initial_id: u64,
     current_id: u64,
@@ -121,23 +120,22 @@ pub struct RelationshipSourceIterator<'a> {
     mmap: &'a MmapMut,
 }
 
-impl<'a> Iterator for RelationshipSourceIterator<'a> {
-    type Item = Result<RelationshipRecord, ReachdbError>;
+impl<'a> Iterator for RelationshipIterator<'a> {
+    type Item = Result<(u64, RelationshipRecord), ReachdbError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        trace!("REL-ID: {}", self.current_id);
         
         // If current_id is NULL_OFFSET, check if we should switch to next direction
         if self.current_id == NULL_OFFSET {
             if !self.visited_prev {
-                trace!("SWITCHING TO NEXT RELATIONSHIPS FROM INITIAL ID");
+                // trace!("SWITCHING TO NEXT RELATIONSHIPS FROM INITIAL ID");
                 self.visited_prev = true;
                 self.current_id = self.initial_id; // Restart from initial_id
             } else {
                 return None; // Fully exhausted both directions
             }
         }
-
+        let this_id = self.current_id;
         // Read the current record
         match RelationshipRecord::read(self.mmap, self.current_id) {
             Ok(record) => {
@@ -147,10 +145,10 @@ impl<'a> Iterator for RelationshipSourceIterator<'a> {
                 if !self.visited_prev {
                     // Iterate using prev relationships first
                     if is_source && record.prev_src_relationship_id != NULL_OFFSET {
-                        trace!("INSIDE PREV SRC");
+                        // trace!("INSIDE PREV SRC");
                         self.current_id = record.prev_src_relationship_id;
                     } else if is_target && record.prev_tgt_relationship_id != NULL_OFFSET {
-                        trace!("INSIDE PREV TGT");
+                        // trace!("INSIDE PREV TGT");
                         self.current_id = record.prev_tgt_relationship_id;
                     } else {
                         // If no more prev links, signal a switch
@@ -159,16 +157,16 @@ impl<'a> Iterator for RelationshipSourceIterator<'a> {
                 } else {
                     // Now iterate using next relationships
                     if is_source && record.next_src_relationship_id != NULL_OFFSET {
-                        trace!("INSIDE NEXT SRC");
+                        // trace!("INSIDE NEXT SRC");
                         self.current_id = record.next_src_relationship_id;
                     } else if is_target && record.next_tgt_relationship_id != NULL_OFFSET {
-                        trace!("INSIDE NEXT TGT");
+                        // trace!("INSIDE NEXT TGT");
                         self.current_id = record.next_tgt_relationship_id;
                     } else {
                         self.current_id = NULL_OFFSET;
                     }
                 }
-                Some(Ok(record))
+                Some(Ok((this_id, record)))
             }
             Err(e) => {
                 // Return the error and stop iteration

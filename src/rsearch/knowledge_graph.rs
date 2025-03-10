@@ -235,7 +235,7 @@ async fn build_kg_iterativiely(query: &str, num_iter: i16, _ftype: &str) -> Resu
                 println!("generate_webkg completed!");
             }
         }
-    }
+    } 
 
     Ok(())
 }
@@ -308,7 +308,7 @@ mod tests {
     #[cfg(feature = "requires_config")]
     #[tokio::test]
     async fn test_kg_gen() -> Result<(), super::ReachError> {
-        let query = "What are Diffusion Models?";
+        let query = "How can we use RL for chip placements?";
         let urls = super::get_relevent_urls(&query, "").await?;
         println!("{urls:#?}");
 

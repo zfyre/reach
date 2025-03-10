@@ -241,10 +241,83 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
         Ok(())
 
     }
-
-    fn if_edge_exists(&self, src_id: &u64, tgt_id: &u64, type_id: &u8) -> Result<bool, ReachdbError> {
+    fn get_mmap(&self) -> Result<(&MmapMut, &MmapMut), ReachdbError> {
         let node_mmap = self.node_mmap.as_ref().expect("Node Mmap not initialized");
         let relation_mmap = self.relation_mmap.as_ref().expect("RelationMmap not initialized");
+        Ok((node_mmap, relation_mmap))
+    }
+    pub fn get_node(&self, node_id: u64) -> Result<NodeRecord, ReachdbError> {
+        let (node_mmap, _) = self.get_mmap()?;
+        NodeRecord::read(node_mmap, node_id)
+    }
+    pub fn get_relation(&self, relation_id: u64) -> Result<RelationshipRecord, ReachdbError> {
+        let (_, relation_mmap) = self.get_mmap()?;
+        RelationshipRecord::read(relation_mmap, relation_id)
+    }
+    pub fn get_connected_node(&self, node_id: u64, relation_id: u64) -> Result<u64, ReachdbError> {
+        let (_, relation_mmap) = self.get_mmap()?;
+        let relation = RelationshipRecord::read(relation_mmap, relation_id)?;
+        let next_id = if node_id == relation.source_id {
+            relation.target_id
+        } else {
+            relation.source_id
+        };
+        debug!("Relation: {relation:#?} Next Node: {next_id}", relation=relation, next_id=next_id);
+        Ok(next_id)
+    }
+    pub fn get_all_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
+        let (node_mmap, relation_mmap) = self.get_mmap()?;
+        let node = NodeRecord::read(node_mmap, node_id)?;
+        let relations = RelationshipRecord::into_iter(
+            relation_mmap,
+            &node_id,
+            node.first_relationship_id
+        ).filter_map(|rel| {
+            rel.ok().map(|(id, _)| id)
+        }).collect();
+        debug!("Node: {node:#?} Relations: {relations:?}", node=node, relations=relations);
+        Ok(relations)
+    }
+    pub fn get_outgoing_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
+        let (node_mmap, relation_mmap) = self.get_mmap()?;
+        let node = NodeRecord::read(node_mmap, node_id)?;
+        let relations = RelationshipRecord::into_iter(
+            relation_mmap,
+            &node_id,
+            node.first_relationship_id
+        ).filter_map(|rel| {
+            rel.ok().map(|(id, rel)| {
+                if rel.source_id == node_id {
+                    Some(id)
+                } else {
+                    None
+                }
+            }).flatten()
+        }).collect();
+        debug!("Node: {node:#?} Relations: {relations:?}", node=node, relations=relations);
+        Ok(relations)
+    }
+    pub fn get_incoming_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
+        let (node_mmap, relation_mmap) = self.get_mmap()?;
+        let node = NodeRecord::read(node_mmap, node_id)?;
+        let relations = RelationshipRecord::into_iter(
+            relation_mmap,
+            &node_id,
+            node.first_relationship_id
+        ).filter_map(|rel| {
+            rel.ok().map(|(id, rel)| {
+                if rel.target_id == node_id {
+                    Some(id)
+                } else {
+                    None
+                }
+            }).flatten()
+        }).collect();
+        debug!("Node: {node:#?} Relations: {relations:?}", node=node, relations=relations);
+        Ok(relations)
+    }
+    fn if_edge_exists(&self, src_id: &u64, tgt_id: &u64, type_id: &u8) -> Result<bool, ReachdbError> {
+        let (node_mmap, relation_mmap) = self.get_mmap()?;
         let src_node = NodeRecord::read(node_mmap, *src_id)?;
         debug!("SRC_NODE inloop: {src_node:#?}");
 
@@ -254,7 +327,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
             src_node.first_relationship_id
         ).any(|rel| {
             // debug!("RelRec inloop: {rel:#?}");
-            if let Ok(rel) = rel {
+            if let Ok((_, rel)) = rel {
                 rel.target_id == *tgt_id &&
                 rel.type_id == *type_id
             } else {
