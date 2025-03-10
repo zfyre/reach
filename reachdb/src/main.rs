@@ -82,3 +82,37 @@ fn main() -> Result<(), ReachdbError> {
 
     Ok(())
 }
+
+// mod tests {
+//     use super::*;
+
+//     #[test]
+//     fn test_reachdb_generation() {
+//         let _ = env_logger::try_init();
+//         let _ = std::fs::remove_dir_all("data");
+//         let mut db = Reachdb::<TypeId>::open("data", Some(10000), Some(10000)).unwrap();
+//         let data = get_data().unwrap();
+//         for (url, edges) in data.as_object().unwrap() {
+//             trace!("url: {}", url);
+//             for edge in edges.as_array().unwrap() {
+//                 let source = edge["source"].as_str().unwrap();
+//                 let target = edge["target"].as_str().unwrap();
+//                 let relationship = edge["relationship"].as_str().unwrap();
+//                 db.add_edge(source, target, relationship).unwrap();            
+//             }
+//         }
+//         db.close().unwrap();
+//     }
+
+//     #[test]
+//     fn test_reachdb_random_walk() {
+//         let _ = env_logger::try_init();
+//         let mut db = Reachdb::<TypeId>::open("data", Some(10000), Some(10000)).unwrap();
+//         let path = db.random_walk(0, 10).unwrap();
+//         for rel_id in path {
+//             let rel = db.get_relation(rel_id).unwrap();
+//             println!("{} --> {}: {:?}", rel.source_id, rel.target_id, TypeId::from_id(rel.type_id));
+//         }
+//         db.close().unwrap();
+//     }
+// }
