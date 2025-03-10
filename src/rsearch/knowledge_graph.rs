@@ -222,7 +222,7 @@ async fn build_kg_iterativiely(query: &str, num_iter: i16, _ftype: &str) -> Resu
             _ => get_context_for_next_query_from_kg(query, 2, 3).await?,
         };
         
-        todo!("Allow user to edit/choose the next query from the list of next_queries");
+        // todo!("Allow user to edit/choose the next query from the list of next_queries");
 
         for query in &_next_queries {
             let urls = get_relevent_urls(&query, "").await?;
@@ -240,6 +240,18 @@ async fn build_kg_iterativiely(query: &str, num_iter: i16, _ftype: &str) -> Resu
     Ok(())
 }
 
+async fn build_kg(query: &str, ftype: &str) -> Result<(), ReachError> {
+    let urls = get_relevent_urls(&query, ftype).await?;
+    println!("{urls:#?}");
+
+    for url in &urls {
+        println!("Calling generate_webkg for url: {:?}", url);
+        let md = get_markdown(&url).await?;
+        let _kg = generate_webkg(&query, &url, &md).await?;
+        println!("generate_webkg completed!");
+    }
+    Ok(())
+}
 
 mod tests {
     // use std::{collections::{linked_list, HashMap}, fmt::format};
@@ -317,6 +329,27 @@ mod tests {
             let md = crate::rsearch::utils::get_markdown(&url).await?;
             let _kg = super::generate_webkg(&query, &url, &md).await?;
             println!("generate_webkg completed!");
+        }
+        Ok(())
+    }
+
+    // #[cfg(feature = "requires_config")]
+    #[tokio::test]
+    async fn test_build_multiple_kg() -> Result<(), super::ReachError> {
+        let query = vec![
+            "How can we use RL for chip placements?",
+            "What are the recent advancements in RL?",
+            "How can we use RL for chip placements?",
+            "How can we use Diffusion Models with Rl?",
+            "What are Transformer Models?",
+            "What are the recent advancements in Transformer Models?",
+            "How can we use Transformer Models with Rl?",
+            "How can we use Transformer Models with Diffusion Models?",
+        ];
+        let ftype = "";
+        for i in 0..query.len() {
+            println!("Building KG for iteration: {}", i);
+            super::build_kg_iterativiely(&query[i], 3, ftype).await?;
         }
         Ok(())
     }

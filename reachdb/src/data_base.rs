@@ -376,7 +376,13 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn add_edge(&mut self, source: &str, target: &str, relationship: &str) -> Result<(), ReachdbError> {
         let src_id = self.get_or_add_node_id(source)?;
         let tgt_id = self.get_or_add_node_id(target)?;
-        let type_id = Self::get_type_id(relationship).expect("Relation type not found");
+        let type_id = match Self::get_type_id(relationship) {
+            Some(id) => id,
+            None => {
+                info!("\x1b[31mError: Relation type '{}' not found, skipping edge\x1b[0m", relationship);
+                return Ok(());
+            }
+        };
 
         if !self.if_edge_exists(&src_id, &tgt_id, &type_id)? {
             // Add the relationship
