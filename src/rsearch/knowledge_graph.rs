@@ -333,7 +333,7 @@ mod tests {
         Ok(())
     }
 
-    // #[cfg(feature = "requires_config")]
+    #[cfg(feature = "requires_config")]
     #[tokio::test]
     async fn test_build_multiple_kg() -> Result<(), super::ReachError> {
         let query = vec![
