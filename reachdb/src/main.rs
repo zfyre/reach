@@ -1,6 +1,6 @@
 
 use std::{env, fs::File, io::Read};
-use log::trace;
+use log::{info, trace};
 use serde_json::Value;
 use reachdb::{data_base::{Reachdb, UserDefinedRelationType}, errors::ReachdbError, records::NULL_OFFSET};
 
@@ -73,10 +73,20 @@ fn main() -> Result<(), ReachdbError> {
     //     }
     // }
 
-    let path = db.random_walk(0, 10)?;
-    for rel_id in path {
-        let rel = db.get_relation(rel_id)?;
-        println!("{} --> {}: {:?}", rel.source_id, rel.target_id, TypeId::from_id(rel.type_id));
+    // let path = db.random_walk(0, 10)?;
+    // for rel_id in path {
+    //     let rel = db.get_relation(rel_id)?;
+    //     println!("{:#?}[{:#?}] -> {:#?}", db.get_property(rel.source_id)?, TypeId::from_id(rel.type_id), db.get_property(rel.target_id)?);
+    // }
+
+    println!("{}", "-----------------".repeat(5));
+    for i in 0..10 {
+        let node = db.get_all_node_relations(i)?;
+        for rel_id in node {
+            let rel = db.get_relation(rel_id)?;
+            println!("{:#?}[{:?}] -> {:#?}", db.get_property(rel.source_id)?, TypeId::from_id(rel.type_id), db.get_property(rel.target_id)?);
+        }
+        println!("{}", "-----------------".repeat(5));
     }
     db.close()?;    
 

@@ -289,21 +289,21 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn get_node(&self, node_id: u64) -> Result<NodeRecord, ReachdbError> {
         let (node_mmap, _) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         NodeRecord::read(node_mmap, node_id)
     }
     pub fn get_relation(&self, relation_id: u64) -> Result<RelationshipRecord, ReachdbError> {
         let (_, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         RelationshipRecord::read(relation_mmap, relation_id)
     }
     pub fn get_connected_node(&self, node_id: u64, relation_id: u64) -> Result<u64, ReachdbError> {
         let (_, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         let relation = RelationshipRecord::read(relation_mmap, relation_id)?;
         let next_id = if node_id == relation.source_id {
@@ -317,7 +317,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn get_all_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
         let (node_mmap, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         let node = NodeRecord::read(node_mmap, node_id)?;
         let relations = RelationshipRecord::into_iter(
@@ -333,7 +333,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn get_outgoing_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
         let (node_mmap, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         let node = NodeRecord::read(node_mmap, node_id)?;
         let relations = RelationshipRecord::into_iter(
@@ -355,7 +355,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn get_incoming_node_relations(&self, node_id: u64) -> Result<Vec<u64>, ReachdbError> {
         let (node_mmap, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         let node = NodeRecord::read(node_mmap, node_id)?;
         let relations = RelationshipRecord::into_iter(
@@ -377,7 +377,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     fn if_edge_exists(&self, src_id: &u64, tgt_id: &u64, type_id: &u8) -> Result<bool, ReachdbError> {
         let (node_mmap, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         let src_node = NodeRecord::read(node_mmap, *src_id)?;
         debug!("SRC_NODE inloop: {src_node:#?}");
@@ -412,14 +412,14 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
 
         // Reterieve and update the counter
         let new_id = self.node_count;
-        let property_id = self.property_count; // property_id != node_id, because it consists of edge properties as well
+        let new_property_id = self.property_count; // property_id != node_id, because it consists of edge properties as well
 
         // Insert the mapping: string -> new_id, and update the counter.
         db.insert(node, bincode::serialize(&new_id)?)?;
         db.flush()?; // Ensure data is persisted
         
         // Insert the mapping: new_id -> node
-        property_db.insert(bincode::serialize(&property_id)?, bincode::serialize(&node)?)?;
+        property_db.insert(bincode::serialize(&new_property_id)?, bincode::serialize(&node)?)?;
         property_db.flush()?; // Ensure data is persisted
 
         info!("Added: \"{}\"(id:{})", node, new_id);
@@ -430,7 +430,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
             .expect("Mmap not initialized")
             .get_node_as_mut();
 
-        NodeRecord::new(new_id).write(node_mmap, new_id)?;
+        NodeRecord::new(new_id, new_property_id).write(node_mmap, new_id)?;
         info!("Added new NodeRecord \"{}\"(id:{})", node, new_id);
         
         self.node_count += 1; // Increment the counter
@@ -446,7 +446,13 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
             None => None
         }
     }
-
+    pub fn get_property(&self, property_id: u64) -> Result<String, ReachdbError> {
+        let property_db = sled::open(&Self::get_db_path(&self.path)[1])?;
+        match property_db.get(bincode::serialize(&property_id)?)? {
+            Some(property) => Ok(bincode::deserialize::<String>(&property)?),
+            None => Err(ReachdbError::OtherError(format!("Property not found for property_id: {}", property_id)))
+        }
+    }
     pub fn add_edge(&mut self, source: &str, target: &str, relationship: &str) -> Result<(), ReachdbError> {
         let src_id = self.get_or_add_node_id(source)?;
         let tgt_id = self.get_or_add_node_id(target)?;
@@ -472,7 +478,7 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
     pub fn print_graph(&self) -> Result<(), ReachdbError> {
         let (node_mmap, relation_mmap) = match self.mmap.as_ref() {
             Some(mmap) => mmap.take_as_ref(),
-            None => return Err(ReachdbError::MmapError("Mmap not initialized".to_string())),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
         };
         println!("Priniting Records");
         for node_id in 0..self.node_count {

@@ -7,7 +7,7 @@ pub enum ReachdbError {
     SerdeJsonError(serde_json::Error),
     SledError(sled::Error),
     FromUtf8Error(std::string::FromUtf8Error),
-    MmapError(String),
+    OtherError(String),
 }
 
 impl fmt::Display for ReachdbError {
@@ -18,7 +18,7 @@ impl fmt::Display for ReachdbError {
             ReachdbError::SerdeJsonError(e) => write!(f, "Serde Error: {}", e),
             ReachdbError::SledError(e) => write!(f, "Sled Error: {}", e),
             ReachdbError::FromUtf8Error(e) => write!(f, "FromUtf8 Error: {}", e),
-            ReachdbError::MmapError(e) => write!(f, "Mmap Error: {}", e),
+            ReachdbError::OtherError(e) => write!(f, "Error: {}", e),
         }
     }
 }
@@ -53,7 +53,7 @@ impl From<std::string::FromUtf8Error> for ReachdbError {
 }
 impl From<String> for ReachdbError {
     fn from(err: String) -> Self {
-        ReachdbError::MmapError(err)
+        ReachdbError::OtherError(err)
     }
 }
 

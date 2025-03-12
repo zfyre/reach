@@ -13,11 +13,11 @@ pub struct NodeRecord {
 }
 
 impl NodeRecord {
-    pub fn new(id: u64) -> Self {
+    pub fn new(id: u64, property_id: u64) -> Self {
         Self {
             id,
             first_relationship_id: NULL_OFFSET,
-            first_property_id: NULL_OFFSET,
+            first_property_id: property_id,
         }
     }
     pub fn update(
