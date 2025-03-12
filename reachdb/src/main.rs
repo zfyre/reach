@@ -2,7 +2,7 @@
 use std::{env, fs::File, io::Read};
 use log::trace;
 use serde_json::Value;
-use reachdb::{data_base::{Reachdb, UserDefinedRelationType}, errors::ReachdbError, records::NULL_OFFSET};
+use reachdb::{{Reachdb, UserDefinedRelationType}, ReachdbError, records::NULL_OFFSET};
 
 fn get_data() -> Result<Value, serde_json::Error> {
     let mut f = File::open("tempdata/c.json")

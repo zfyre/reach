@@ -17,3 +17,4 @@ use crate::{
 
 #[derive(Parser, Debug)]
 pub struct Rsearch {}
+pub use knowledge_graph::build_kg_iteratively;

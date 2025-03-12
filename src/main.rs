@@ -15,9 +15,8 @@ use display::*;
 use errors::*;
 use rsearch::*;
 
-
-pub const AUTHOR: &str = "Me <kshitiz4kaushik@gmail.com>";
-pub const VERSION: &str = "1.0.0";
+use reach_cli::AUTHOR;
+use reach_cli::VERSION;
 
 /// The commands that can be executed
 /// 

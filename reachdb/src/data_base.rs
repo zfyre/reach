@@ -151,10 +151,13 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
             std::fs::create_dir_all(path)?;
             reachdb = Self::new(path)?;
         } else {
-            // Open the metadata file
             let metadata_path = &Self::get_db_path(path)[4];
-            let metadata = std::fs::read_to_string(metadata_path)?;
-            reachdb = serde_json::from_str(&metadata)?;
+            if !std::path::Path::new(metadata_path).exists() {
+                reachdb = Self::new(path)?;
+            } else {
+                let metadata = std::fs::read_to_string(metadata_path)?;
+                reachdb = serde_json::from_str(&metadata)?;
+            }
         }
         
         // Prepare the databases

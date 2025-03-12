@@ -1,6 +1,7 @@
 use std::{fmt, io};
 use reqwest::Error as ReqwestError;
 use serde_json::Error as SerdeError;
+use reachdb::ReachdbError;
 
 #[derive(Debug)]
 pub enum ReachError {
@@ -12,6 +13,7 @@ pub enum ReachError {
     ApiError(String),
     ParsingError(String),
     CrawlerError(String),
+    ReachdbError(ReachdbError),
 }
 
 impl fmt::Display for ReachError {
@@ -25,6 +27,7 @@ impl fmt::Display for ReachError {
             ReachError::ApiError(e) => write!(f, "API Error: {}", e),
             ReachError::ParsingError(e) => write!(f, "Parsing Error: {}", e),
             ReachError::CrawlerError(e) => write!(f, "Web Crawler Error: {}", e),
+            ReachError::ReachdbError(e) => write!(f, "Reachdb Error: {}", e),
         }
     }
 }
@@ -52,5 +55,11 @@ impl From<SerdeError> for ReachError {
 impl From<String> for ReachError {
     fn from(err: String) -> Self {
         ReachError::ConfigError(err)
+    }
+}
+
+impl From<ReachdbError> for ReachError {
+    fn from(err: ReachdbError) -> Self {
+        ReachError::ReachdbError(err)
     }
 }

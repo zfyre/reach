@@ -1329,6 +1329,8 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "colored",
+ "env_logger",
+ "log",
  "reachdb",
  "regex",
  "reqwest",
