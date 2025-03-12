@@ -7,6 +7,7 @@ pub enum ReachdbError {
     SerdeJsonError(serde_json::Error),
     SledError(sled::Error),
     FromUtf8Error(std::string::FromUtf8Error),
+    MmapError(String),
 }
 
 impl fmt::Display for ReachdbError {
@@ -17,16 +18,18 @@ impl fmt::Display for ReachdbError {
             ReachdbError::SerdeJsonError(e) => write!(f, "Serde Error: {}", e),
             ReachdbError::SledError(e) => write!(f, "Sled Error: {}", e),
             ReachdbError::FromUtf8Error(e) => write!(f, "FromUtf8 Error: {}", e),
+            ReachdbError::MmapError(e) => write!(f, "Mmap Error: {}", e),
         }
     }
 }
 
 impl std::error::Error for ReachdbError {}
 
-impl From<io::Error> for ReachdbError {
-    fn from(err: io::Error) -> Self {
+impl From<std::io::Error> for ReachdbError {
+    fn from(err: std::io::Error) -> Self {
         ReachdbError::IoError(err)
     }
+
 }
 impl From<bincode::Error> for ReachdbError {
     fn from(err: bincode::Error) -> Self {
@@ -46,6 +49,11 @@ impl From<sled::Error> for ReachdbError {
 impl From<std::string::FromUtf8Error> for ReachdbError {
     fn from(err: std::string::FromUtf8Error) -> Self {
         ReachdbError::FromUtf8Error(err)
+    }
+}
+impl From<String> for ReachdbError {
+    fn from(err: String) -> Self {
+        ReachdbError::MmapError(err)
     }
 }
 

@@ -60,18 +60,18 @@ fn main() -> Result<(), ReachdbError> {
     // db.prepare(Some(10000), Some(10000))?;
     let mut db = Reachdb::<TypeId>::open("data", Some(60000), Some(60000))?;
 
-    let data = get_data().unwrap();
-    // db.print_graph()?;
-    for (url, edges) in data.as_object().unwrap() {
-        trace!("url: {}", url);
-        for edge in edges.as_array().unwrap() {
-            let source = edge["source"].as_str().unwrap();
-            let target = edge["target"].as_str().unwrap();
-            let relationship = edge["relationship"].as_str().unwrap();
-            // println!("{} - {} -> {}", source, relationship, target);
-            db.add_edge(source, target, relationship)?;            
-        }
-    }
+    // let data = get_data().unwrap();
+    // // db.print_graph()?;
+    // for (url, edges) in data.as_object().unwrap() {
+    //     trace!("url: {}", url);
+    //     for edge in edges.as_array().unwrap() {
+    //         let source = edge["source"].as_str().unwrap();
+    //         let target = edge["target"].as_str().unwrap();
+    //         let relationship = edge["relationship"].as_str().unwrap();
+    //         // println!("{} - {} -> {}", source, relationship, target);
+    //         db.add_edge(source, target, relationship)?;            
+    //     }
+    // }
 
     let path = db.random_walk(0, 10)?;
     for rel_id in path {
