@@ -1,6 +1,6 @@
 
 use std::{env, fs::File, io::Read};
-use log::{info, trace};
+use log::trace;
 use serde_json::Value;
 use reachdb::{data_base::{Reachdb, UserDefinedRelationType}, errors::ReachdbError, records::NULL_OFFSET};
 

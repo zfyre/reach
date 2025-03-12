@@ -1,7 +1,7 @@
 // All the metadata for a particular session is stored here
 
 use std::result::Result;
-use crate::{errors::ReachdbError, records::{node::{self, NodeRecord}, relationship::RelationshipRecord, Record, NULL_OFFSET}, utils::create_mmap};
+use crate::{errors::ReachdbError, records::{node::NodeRecord, relationship::RelationshipRecord, Record, NULL_OFFSET}, utils::create_mmap};
 use log::{info, debug};
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
