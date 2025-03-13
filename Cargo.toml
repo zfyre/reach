@@ -11,9 +11,7 @@ name = "reach"
 path = "src/main.rs"
 
 [workspace]
-members = [
-    "reachdb",
-]
+members = [ "apis", "reachdb", "rsearch", "tui"]
 
 [dependencies]
 clap = { version = "4.5.28", features = ["derive"] }
