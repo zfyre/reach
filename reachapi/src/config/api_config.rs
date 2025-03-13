@@ -1,8 +1,7 @@
-use super::{
-    fs, get_config_path,
-    io::{self},
-    save_config, FromStr, Parser, ReachError, Write,
-};
+use clap::Parser;
+use std::io::{self, Write};
+use std::{fs, str::FromStr};
+use crate::ReachApiError;
 
 /// The API keys that can be configured
 ///
@@ -64,7 +63,7 @@ impl ApiConfig {
     /// # Errors
     ///
     /// * If the file cannot be read
-    pub fn read_config() -> Result<Vec<(String, String)>, ReachError> {
+    pub fn read_config() -> Result<Vec<(String, String)>, ReachApiError> {
         let config_path = get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
@@ -98,7 +97,7 @@ impl ApiConfig {
     /// * If the input/output fails
     ///
     /// * If the configuration cannot be saved / read / written
-    pub fn get_config_from_user() -> Result<(), ReachError> {
+    pub fn get_config_from_user() -> Result<(), ReachApiError> {
         let mut google_api_key = String::new();
         let mut search_engine_id = String::new();
         let mut gemini_api_key = String::new();

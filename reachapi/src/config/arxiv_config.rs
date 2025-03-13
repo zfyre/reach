@@ -1,8 +1,6 @@
-use super::{
-    fs, get_config_path,
-    io::{self},
-    save_config, FromStr, Parser, ReachError, Write,
-};
+//! Configuration for Arxiv
+
+use super::{get_config_path, Parser, ReachApiError, fs, FromStr, io, io::Write};
 
 /// The keys that can be configured for Arxiv
 ///
@@ -69,7 +67,7 @@ impl ArxivConfig {
     /// # Returns
     ///
     /// * `Result<Vec<(String, Vec<String>)>, Error>` - The result of the operation
-    pub fn read_config() -> Result<Vec<(String, Vec<String>)>, ReachError> {
+    pub fn read_config() -> Result<Vec<(String, Vec<String>)>, ReachApiError> {
         let config_path = get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
@@ -104,7 +102,7 @@ impl ArxivConfig {
     /// # Returns
     ///
     /// * `Result<(), Error>` - The result of the operation
-    pub fn get_config_from_user() -> Result<(), ReachError> {
+    pub fn get_config_from_user() -> Result<(), ReachApiError> {
         let mut include_words = String::new();
         let mut exclude_words = String::new();
         let mut authors = String::new();

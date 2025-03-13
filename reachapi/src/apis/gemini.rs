@@ -1,12 +1,6 @@
-use super::{
-    json,
-    Value,
-    Client,
-    RawOuts,
-    ReachError,
-};
+use super::{Client, Value, json, ReachApiError, RawOuts};
 
-pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<Vec<RawOuts>, ReachError> {
+pub async fn gemini_query(gemini_api_key: &str, query: &str) -> Result<Vec<RawOuts>, ReachApiError> {
     let gemini_request_url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     );

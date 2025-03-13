@@ -1,22 +1,27 @@
-mod apis;
-mod config;
-mod display;
-mod rsearch;
-mod errors;
+// mod apis;
+// mod config;
+// mod display;
+// mod rsearch;
 
+// External crate imports
 use tokio;
 use clap::Parser;
 use std::str::FromStr;
 use std::collections::HashMap;
 
-use apis::*;
-use config::*;
+// Imports from apis crate
+// use 
+
+// Imports from tui crate
 use display::*;
-use errors::*;
+
+// Imports from rsearch crate
 use rsearch::*;
 
+// Imports from the reach crate
 use reach_cli::AUTHOR;
 use reach_cli::VERSION;
+use reach_cli::ReachError;
 
 /// The commands that can be executed
 /// 

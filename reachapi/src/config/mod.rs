@@ -1,17 +1,28 @@
-mod api_config;
-mod arxiv_config;
 
+// Emitting Following Modules
+mod api_config;
 pub use api_config::*;
+
+mod arxiv_config;
 pub use arxiv_config::*;
 
-use crate::errors::ReachError;
-
+// External Imports
+use std::{env, fs, path::PathBuf, str::FromStr};
 use clap::Parser;
 use std::io::{self, Write};
-use std::{env, fs, path::PathBuf, str::FromStr};
 
-/// The name of the configuration file
-const CONFIG_FILE: &str = ".reach-config";
+// Internal Imports
+use crate::errors::ReachApiError;
+
+// Member Imports
+
+
+// Common Functions (May be Emitted)
+trait Config {
+    fn read_config() -> Result<Self, ReachApiError>
+    where
+        Self: Sized;
+}
 
 /// Get the path to the configuration file
 ///
@@ -40,7 +51,7 @@ fn get_config_path() -> PathBuf {
 /// # Errors
 ///
 /// * If the file cannot be read or written to
-fn save_config(key: &str, value: &str) -> Result<(), ReachError> {
+fn save_config(key: &str, value: &str) -> Result<(), ReachApiError> {
     let config_path = get_config_path();
     let content = if config_path.exists() {
         let existing = fs::read_to_string(&config_path)?;

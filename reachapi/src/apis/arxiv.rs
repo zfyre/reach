@@ -1,11 +1,4 @@
-use super::{
-    HashMap,
-    ArxivConfig,
-    ArxivKeys,
-    RawOuts,
-    ReachError,
-    Client
-};
+use super::{HashMap, Client, ArxivConfig, ArxivKeys, RawOuts, ReachApiError};
 
 #[derive(Debug)]
 struct ArxivQuery<'a> {
@@ -141,7 +134,7 @@ pub struct ArxivOutput {
 pub async fn arxive_search(
     query: Option<&str>,
     max_results: &str,
-) -> Result<Vec<RawOuts>, ReachError> {
+) -> Result<Vec<RawOuts>, ReachApiError> {
     let arxive_search_url = "http://export.arxiv.org/api/query";
     let client = Client::new();
     let search_query = match query {

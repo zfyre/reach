@@ -1,16 +1,11 @@
-use super::{
-    Client,
-    RawOuts,
-    ReachError,
-    Value
-};
+use super::{Client, Value, ReachApiError, RawOuts};
 
 pub async fn google_search(
     google_api_key: &str,
     search_engine_id: &str,
     query: &str,
     ftype: &str,
-) -> Result<Vec<RawOuts>, ReachError> {
+) -> Result<Vec<RawOuts>, ReachApiError> {
     let google_search_request_url = format!("https://www.googleapis.com/customsearch/v1");
     let client = Client::new();
     let response = client

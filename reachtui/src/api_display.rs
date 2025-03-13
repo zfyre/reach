@@ -1,6 +1,6 @@
 
-use crate::{apis::ArxivOutput, VERSION};
-use crate::errors::ReachError;
+// use crate::{apis::ArxivOutput, VERSION};
+// use crate::errors::ReachError;
 // use colored::Colorize;
 // use serde_json::value;
 use {
@@ -9,12 +9,7 @@ use {
     termimad::*,
 };
 
-#[derive(Debug)]
-pub enum RawOuts {
-    RawGeminiOut(String),
-    RawArxivOut(ArxivOutput),
-    RawGoogleOut((String, String)),
-}
+
 pub trait TerminalDisplay {
     fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError>;
     fn get_display_template() -> &'static str;
