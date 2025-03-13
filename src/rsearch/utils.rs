@@ -1,3 +1,4 @@
+use log::trace;
 use super::{ReachError, Value};
 
 // Using Python-Crawl4Ai process
@@ -14,6 +15,7 @@ pub async fn get_markdown(url: &str) -> Result<String, ReachError> {
     }
 
     let result = String::from_utf8_lossy(&output.stdout).into(); // .into() converts the Cow to the Owned type because we are returning Result<String, Err>
+    trace!("Markdown fetch complete");
     Ok(result)
 }
 

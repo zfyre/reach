@@ -35,6 +35,14 @@ impl UserDefinedRelationType for TypeId {
             Self::Influences(id) => *id,
         }
     }
+    fn get_type_str(id: u8) -> Option<String> {
+        match id {
+            0 => Some("IS-A".to_string()),
+            1 => Some("RELATES-TO".to_string()),
+            2 => Some("INFLUENCES".to_string()),
+            _ => None
+        }
+    }
 }
 impl TypeId {
     fn from_id(id: u8) -> Self {
@@ -69,7 +77,7 @@ fn main() -> Result<(), ReachdbError> {
     //         let target = edge["target"].as_str().unwrap();
     //         let relationship = edge["relationship"].as_str().unwrap();
     //         // println!("{} - {} -> {}", source, relationship, target);
-    //         db.add_edge(source, target, relationship)?;            
+            // db.add_edge(source, target, relationship)?;            
     //     }
     // }
 

@@ -1,6 +1,10 @@
+use core::num;
+
 /// 1. File to configure the Research module using google search, gemini search and Arxive search
 /// 2. Handles the search even if Api key is not provided using only Arxiv search : LATER!!
-use super::{gemini_query, google_search, ApiConfig, ApiKeys, HashMap, RawOuts, ReachError, Value, Regex};
+use super::{
+    gemini_query, google_search, ApiConfig, ApiKeys, HashMap, RawOuts, ReachError, Regex, Value,
+};
 use crate::rsearch::utils::{append_to_json, get_markdown};
 use log::{info, trace};
 use reachdb::{Reachdb, UserDefinedRelationType};
@@ -31,7 +35,11 @@ async fn get_relevent_urls(query: &str, ftype: &str) -> Result<Vec<String>, Reac
     Ok(urls)
 }
 
-async fn generate_websummary(query: &str, urls: &[String]) -> Result<Value, ReachError> {
+async fn generate_websummary<T: UserDefinedRelationType>(
+    db: &mut Reachdb<T>,
+    query: &str,
+    urls: &[String],
+) -> Result<Value, ReachError> {
     let api_config: HashMap<String, String> =
         ApiConfig::read_config().unwrap().into_iter().collect();
     let gemini_api_key = api_config
@@ -102,14 +110,19 @@ async fn generate_websummary(query: &str, urls: &[String]) -> Result<Value, Reac
         Value::Object(map)
     };
 
-    append_to_json(&response, "data/summaries.json")?;
+    append_to_json(&response, &format!("{}/summaries.json", db.path))?;
 
     Ok(response)
 }
 
 /// Generates Knoweldge Graph from Webpapes
 /// Currently implementing for single webpage, try to implement this for multiple webpages to prevent context loss
-async fn generate_webkg<T:UserDefinedRelationType>(db: &Reachdb<T>, query: &str, url: &str, md: &str) -> Result<Value, ReachError> {
+async fn generate_webkg<T: UserDefinedRelationType>(
+    db: &mut Reachdb<T>,
+    query: &str,
+    url: &str,
+    md: &str,
+) -> Result<Value, ReachError> {
     let api_config: HashMap<String, String> =
         ApiConfig::read_config().unwrap().into_iter().collect();
     let gemini_api_key = api_config
@@ -140,7 +153,7 @@ async fn generate_webkg<T:UserDefinedRelationType>(db: &Reachdb<T>, query: &str,
             "#,
         query, md
     );
-    println!("Getting the LLM Response\n");
+    info!("Getting the LLM Response\n");
 
     let mut gemini_response = gemini_query(&gemini_api_key, &prompt).await?;
     let response_str = match gemini_response.pop().unwrap() {
@@ -164,15 +177,16 @@ async fn generate_webkg<T:UserDefinedRelationType>(db: &Reachdb<T>, query: &str,
     let mut edges = Vec::new();
     for edge_str in response_str {
         let edge = edge_str.trim();
-        println!("{edge:#?}");
+        trace!("{edge:#?}");
         let re = Regex::new(r"\[([^\]]+)\]-\[([^\]]+)\]->\[([^\]]+)\]").unwrap();
         if let Some(captures) = re.captures(edge) {
             if captures.len() == 4 {
-            edges.push((
-                captures[1].to_string(),
-                captures[2].to_string(), 
-                captures[3].to_string()
-            ));
+                edges.push((
+                    captures[1].to_string(),
+                    captures[2].to_string(),
+                    captures[3].to_string(),
+                ));
+                db.add_edge(&captures[1], &captures[3], &captures[2])?;
             }
         }
     }
@@ -197,52 +211,157 @@ async fn generate_webkg<T:UserDefinedRelationType>(db: &Reachdb<T>, query: &str,
         Value::Object(map)
     };
 
-    append_to_json(&response, "data/knowledge_graph.json")?;
+    append_to_json(&response, &format!("{}/knowledge_graph.json", db.path))?;
 
     Ok(response)
 }
 
 /// Generates the Context for the next query
 /// # IMP `The query can be user decided new query or the initial query`
-async fn get_next_query_from_kg<T: UserDefinedRelationType>(db: &Reachdb<T>, query: &str, num_steps: i8, num_queries: i8) -> Result<Vec<String>, ReachError> {
+async fn get_next_query_from_kg<T: UserDefinedRelationType>(
+    db: &mut Reachdb<T>,
+    query: &str,
+    num_depth: i8,
+    num_queries: i8,
+) -> Result<Vec<String>, ReachError> {
     // Extract the Recent Extracted Concepts & Relationships that is the recent Edges
+    trace!("Getting the Recent {} Edges", num_queries);
+    let edges = db.get_recent_edges(num_queries as u64)?;
+    let mut next_queries = Vec::new();
 
-    // Use these Concepts to perform a random walk on KG for R steps
+    for rel in edges {
+        let src = rel.source_id;
+        let path = db.random_walk(src, num_depth as usize)?;
 
-    // Get the Context for the next query
+        // Use these relations to perform a random walk on KG for R steps
+        let mut concepts = Vec::new();
+        for rel_id in path {
+            let rel = db.get_relation(rel_id)?;
+            let src = db.get_property(rel.source_id)?;
+            let dst = db.get_property(rel.target_id)?;
+            concepts.push((src, T::get_type_str(rel.type_id).unwrap(), dst));
+        }
+        // Use Concepts to to generate next query
+        let next_query = get_next_query_from_concept(query, &concepts).await?;
+        next_queries.push(next_query);
+    }
 
     // Return the next possible quries
-    Ok(vec!["".to_string()])
+    Ok(next_queries)
 }
 
-pub async fn build_kg_iteratively<T: UserDefinedRelationType>(db: &Reachdb<T>, query: &str, num_iter: i16, _ftype: &str) -> Result<(), ReachError> {
+async fn get_next_query_from_concept(
+    query: &str,
+    concepts: &[(String, String, String)],
+) -> Result<String, ReachError> {
 
+    let concepts_str = concepts
+        .iter()
+        .map(|(src, rel, dst)| format!("{} {} {}", src, rel, dst))
+        .collect::<Vec<_>>()
+        .join(",\n");
+
+    let prompt = format!(
+        r#"
+        You are an expert PhD researcher specializing in formulating precise and impactful research queries.  
+
+        Given:  
+        - An **initial research query**: `{}`  
+        - A **set of known concepts and relationships**: `{}`  
+
+        Your task is to:  
+        1. **Analyze** the initial query and understand its core intent.  
+        2. **Examine** the provided concepts and relationships to identify how they relate to or extend the query.  
+        3. **Generate a refined research query** that:  
+        - Expands upon the initial query.  
+        - Incorporates and builds upon the provided concepts and relationships.  
+        - Is concise, specific, and directly searchable on the web.  
+        - Maintains scholarly rigor and technical accuracy.  
+
+        Your response should be **a single, well-structured search query** that is both relevant and academically precise.  
+
+        **Output the refined query only, without any additional explanations.**
+
+        "#,
+        query, concepts_str
+    );
+
+    let api_config: HashMap<String, String> =
+        ApiConfig::read_config().unwrap().into_iter().collect();
+    let gemini_api_key = api_config
+        .get(&ApiKeys::Gemini.as_str())
+        .expect("Gemini API key is not available");
+
+    let mut gemini_response = gemini_query(&gemini_api_key, &prompt).await?;
+    let response_str = match gemini_response.pop().unwrap() {
+        RawOuts::RawGeminiOut(output) => Some(output),
+        _ => None,
+    }
+    .unwrap();
+    let response_str = response_str
+        .trim()
+        .trim_start_matches("\"")
+        .trim_start_matches("\\")
+        .trim_start_matches("\"")
+        .trim_end_matches("\"")
+        .trim_end_matches("\\n")
+        .trim_end_matches("\"")
+        .trim_end_matches("\\")
+        .to_string();
+
+    println!("RESPONSE: {}", response_str);
+    Ok(response_str.trim().to_string())
+}
+
+/// Builds the Knowledge Graph iteratively
+/// 
+/// # Arguments
+/// * `db` - The Reachdb instance
+/// * `query` - The initial query
+/// * `num_iter` - Number of Iterations
+/// * `num_steps` - Depth for Random Walk
+/// * `_ftype` - The file type of the query
+/// 
+pub async fn build_kg_iteratively<T: UserDefinedRelationType>(
+    db: &mut Reachdb<T>,
+    query: &str,
+    _ftype: &str,
+    num_iter: i8, // Number of Iterations
+    num_depth: i8,// Depth for Random Walk
+    num_queries: i8, // Number of Queries to consider for next query
+) -> Result<(), ReachError> {
     for itr in 0..num_iter {
-
-        let _next_queries = match itr {
+        println!("{}", "-----------------".repeat(5));
+        info!("Iteration: {}", itr);
+        let next_queries = match itr {
             0 => vec![query.to_string()],
-            _ => get_next_query_from_kg(db, query, 2, 3).await?,
+            _ => get_next_query_from_kg(db, query, num_depth, num_queries).await?,
         };
-        
+
         // TODO ("Allow user to edit/choose the next query from the list of next_queries");
 
-        for query in &_next_queries {
-            build_kg(db, query, "").await?;
+        for next_query in &next_queries {
+            info!("Building KG for query: {}", next_query);
+            build_kg(db, next_query, "").await?;
         }
-    } 
+    }
 
     Ok(())
 }
 
-async fn build_kg<T:UserDefinedRelationType>(db: &Reachdb<T>, query: &str, ftype: &str) -> Result<(), ReachError> {
+async fn build_kg<T: UserDefinedRelationType>(
+    db: &mut Reachdb<T>,
+    query: &str,
+    ftype: &str,
+) -> Result<(), ReachError> {
     let urls = get_relevent_urls(&query, ftype).await?;
-    trace!("Total {} URLs fetched", urls.len());
+    info!("Total {} URLs fetched", urls.len());
 
     for url in &urls {
-        trace!("Calling generate_webkg for url: {:?}", url);
+        info!("Processing URL: {}", url);
         let md = get_markdown(&url).await?;
-        let _kg = generate_webkg(&db, &query, &url, &md).await?;
-        trace!("generate_webkg completed!");
+        let _kg = generate_webkg(db, &query, &url, &md).await?;
+        info!("Knowledge Graph addition completed!");
     }
     Ok(())
 }
@@ -252,8 +371,10 @@ mod tests {
 
     #[tokio::test]
     async fn run_rsearch() {
-        let api_config: std::collections::HashMap<String, String> =
-            crate::ApiConfig::read_config().unwrap().into_iter().collect();
+        let api_config: std::collections::HashMap<String, String> = crate::ApiConfig::read_config()
+            .unwrap()
+            .into_iter()
+            .collect();
         let google_api_key = api_config
             .get(&crate::ApiKeys::Google.as_str())
             .expect("Google search API key is not available");
@@ -295,7 +416,7 @@ mod tests {
         }
         Ok(())
     }
-    
+
     #[tokio::test]
     async fn test_kg_gen() -> Result<(), super::ReachError> {
         let query = "How can we use RL for chip placements?";
@@ -330,5 +451,4 @@ mod tests {
         }
         Ok(())
     }
-
 }

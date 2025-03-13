@@ -1,8 +1,8 @@
 /target
 /build
-/src/bin
 /data
 /tempdata
+/test
 
 .vscode
 .venv

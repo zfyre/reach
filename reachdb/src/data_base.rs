@@ -6,9 +6,10 @@ use log::{info, debug};
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
 
-pub trait UserDefinedRelationType {
+pub trait UserDefinedRelationType: std::fmt::Debug {
     fn get_type_id(relation: &str) -> Option<Self> where Self: Sized;
     fn type_id(&self) -> u8;
+    fn get_type_str(id: u8) -> Option<String>;
 }
 
 /// Wrapper for the memory maps
@@ -60,11 +61,11 @@ pub struct Reachdb<E: UserDefinedRelationType> {
     node_count: u64,
     relationship_count: u64,
     property_count: u64,
-    path: String,
+    pub path: String,
 
 }
 
-impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
+impl<E: UserDefinedRelationType> Reachdb<E> {
     fn new(path: &str) -> Result<Self, ReachdbError> {        
         Ok(Self {
             _marker: std::marker::PhantomData,
@@ -491,5 +492,29 @@ impl<E: UserDefinedRelationType + std::fmt::Debug> Reachdb<E> {
             info!("{:#?}", RelationshipRecord::read(relation_mmap, rel_id));
         }
         Ok(())
+    }
+
+    pub fn get_recent_edges(&self, k: u64) -> Result<Vec<RelationshipRecord>, ReachdbError> {
+        let (_, relation_mmap) = match self.mmap.as_ref() {
+            Some(mmap) => mmap.take_as_ref(),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
+        };
+        let mut edges = Vec::new();
+        for rel_id in (self.relationship_count - k)..self.relationship_count {
+            edges.push(RelationshipRecord::read(relation_mmap, rel_id)?);
+        }
+        Ok(edges)
+    }
+
+    pub fn get_edge_from_rel_id(&self, rel_id: u64) -> Result<(String, String, u8), ReachdbError> {
+        let (_, relation_mmap) = match self.mmap.as_ref() {
+            Some(mmap) => mmap.take_as_ref(),
+            None => return Err(ReachdbError::OtherError("Mmap not initialized".to_string())),
+        };
+        let rel = RelationshipRecord::read(relation_mmap, rel_id)?;
+        let src = self.get_property(rel.source_id)?;
+        let tgt = self.get_property(rel.target_id)?;
+
+        Ok((src, tgt, rel.type_id))
     }
 }
