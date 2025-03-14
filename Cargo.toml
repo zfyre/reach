@@ -7,6 +7,10 @@ edition = "2021"
 name = "reach"
 path = "src/lib.rs"
 
+[[bin]]
+name = "reach"
+path = "src/main.rs"
+
 [workspace]
 members = [ "src/metadata",
     "src/reachapi",

@@ -5,10 +5,7 @@ pub use errors::ReachError;
 
 //############################################### EXTERNAL IMPORTS ###############################################//
 
-use tokio;
-use clap::Parser;
-use std::{str::FromStr, fmt, io};
-use std::collections::HashMap;
+use std::{fmt, io};
 use reqwest::Error as ReqwestError;
 use serde_json::Error as SerdeError;
 
@@ -18,8 +15,10 @@ use serde_json::Error as SerdeError;
 //################################################ MEMBER IMPORTS ################################################//
 
 use reachdb::ReachdbError;
-use rsearch::{RsearchError, build_kg_iteratively};
-use metadata::*;
+use rsearch::RsearchError;
+use reachapi::ReachApiError;
+use reachtui::ReachTuiError;
+pub use metadata::*;
 
 //############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
 
