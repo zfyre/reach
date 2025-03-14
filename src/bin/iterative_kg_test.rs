@@ -1,7 +1,8 @@
 use std::env;
 
 use reachdb::{Reachdb, UserDefinedRelationType};
-use reach_cli::{errors::ReachError, rsearch::build_kg_iteratively};
+use reach::ReachError;
+use rsearch::build_kg_iteratively;
 
 #[derive(Debug)]
 enum TypeId {

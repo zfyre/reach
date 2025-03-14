@@ -1262,9 +1262,9 @@ checksum = "953ec861398dccce10c670dfeaf3ec4911ca479e9c02154b3a215178c5f566f2"
 
 [[package]]
 name = "ppv-lite86"
-version = "0.2.20"
+version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77957b295656769bb8ad2b6a6b09d897d94f05c41b069aede1fcdaa675eaea04"
+checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
 ]
@@ -1324,16 +1324,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "reach-cli"
+name = "reach"
 version = "0.1.1"
 dependencies = [
  "clap",
  "colored",
  "env_logger",
  "log",
+ "reachapi",
  "reachdb",
  "regex",
  "reqwest",
+ "rsearch",
  "scraper",
  "serde_json",
  "termimad",
@@ -1368,9 +1370,6 @@ dependencies = [
 [[package]]
 name = "reachtui"
 version = "0.1.0"
-dependencies = [
- "reachapi",
-]
 
 [[package]]
 name = "redox_syscall"
@@ -1468,6 +1467,16 @@ checksum = "3cd14fd5e3b777a7422cca79358c57a8f6e3a703d9ac187448d0daf220c2407f"
 [[package]]
 name = "rsearch"
 version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "log",
+ "reachapi",
+ "reachdb",
+ "regex",
+ "serde_json",
+ "tokio",
+]
 
 [[package]]
 name = "rustc-demangle"
@@ -2359,19 +2368,18 @@ dependencies = [
 
 [[package]]
 name = "zerocopy"
-version = "0.7.35"
+version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
+checksum = "fd97444d05a4328b90e75e503a34bad781f14e28a823ad3557f0750df1ebcbc6"
 dependencies = [
- "byteorder",
  "zerocopy-derive",
 ]
 
 [[package]]
 name = "zerocopy-derive"
-version = "0.7.35"
+version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
+checksum = "6352c01d0edd5db859a63e2605f4ea3183ddbd15e2c4a9e7d32184df75e4f154"
 dependencies = [
  "proc-macro2",
  "quote",

@@ -1,29 +1,32 @@
 //########################################## EMITTING FOLLOWING MODULES ##########################################//
 
+mod knowledge_graph;
+mod utils;
+pub use utils::*;
 mod errors;
-pub use errors::ReachError;
+pub use errors::RsearchError;
 
 //############################################### EXTERNAL IMPORTS ###############################################//
 
-use tokio;
 use clap::Parser;
-use std::{str::FromStr, fmt, io};
-use std::collections::HashMap;
-use reqwest::Error as ReqwestError;
-use serde_json::Error as SerdeError;
+use regex::Regex;
+use std::{collections::HashMap, fmt};
+use serde_json::Value;
+use log::{info, trace};
+use tokio;
 
 //############################################### INTERNAL IMPORTS ###############################################//
 
-
 //################################################ MEMBER IMPORTS ################################################//
 
-use reachdb::ReachdbError;
-use rsearch::{RsearchError, build_kg_iteratively};
+use reachapi::{
+    ApiConfig, ApiKeys, RawOuts,
+    ReachApiError, google_search, gemini_query
+};
+use reachdb::{Reachdb, ReachdbError, UserDefinedRelationType};
 
 //############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
 
-pub const AUTHOR: &str = "Me <kshitiz4kaushik@gmail.com>";
-pub const VERSION: &str = "1.0.0";
-pub const CONFIG_FILE: &str = ".reach-config";
-
-
+#[derive(Parser, Debug)]
+pub struct Rsearch {}
+pub use knowledge_graph::build_kg_iteratively;

@@ -1,18 +1,20 @@
-use core::num;
+
+use reachapi::{ReachConfig, ReachConfigKeys};
 
 /// 1. File to configure the Research module using google search, gemini search and Arxive search
 /// 2. Handles the search even if Api key is not provided using only Arxiv search : LATER!!
 use super::{
-    gemini_query, google_search, ApiConfig, ApiKeys, HashMap, RawOuts, ReachError, Regex, Value,
+    gemini_query, google_search, ApiConfig, ApiKeys, RawOuts,
+    RsearchError, Regex, Value, HashMap, 
+    info, trace,
+    append_to_json, get_markdown,
+    Reachdb, UserDefinedRelationType
 };
-use crate::rsearch::utils::{append_to_json, get_markdown};
-use log::{info, trace};
-use reachdb::{Reachdb, UserDefinedRelationType};
 
 // TODO: Make a struct where we already initialze the api-config during intialization
-async fn get_relevent_urls(query: &str, ftype: &str) -> Result<Vec<String>, ReachError> {
+async fn get_relevent_urls(query: &str, ftype: &str) -> Result<Vec<String>, RsearchError> {
     // Get the APIs
-    let api_config: HashMap<String, String> =
+    let api_config: HashMap<String, String> = 
         ApiConfig::read_config().unwrap().into_iter().collect();
     let google_api_key = api_config
         .get(&ApiKeys::Google.as_str())
@@ -39,7 +41,7 @@ async fn generate_websummary<T: UserDefinedRelationType>(
     db: &mut Reachdb<T>,
     query: &str,
     urls: &[String],
-) -> Result<Value, ReachError> {
+) -> Result<Value, RsearchError> {
     let api_config: HashMap<String, String> =
         ApiConfig::read_config().unwrap().into_iter().collect();
     let gemini_api_key = api_config
@@ -122,7 +124,7 @@ async fn generate_webkg<T: UserDefinedRelationType>(
     query: &str,
     url: &str,
     md: &str,
-) -> Result<Value, ReachError> {
+) -> Result<Value, RsearchError> {
     let api_config: HashMap<String, String> =
         ApiConfig::read_config().unwrap().into_iter().collect();
     let gemini_api_key = api_config
@@ -223,7 +225,7 @@ async fn get_next_query_from_kg<T: UserDefinedRelationType>(
     query: &str,
     num_depth: i8,
     num_queries: i8,
-) -> Result<Vec<String>, ReachError> {
+) -> Result<Vec<String>, RsearchError> {
     // Extract the Recent Extracted Concepts & Relationships that is the recent Edges
     trace!("Getting the Recent {} Edges", num_queries);
     let edges = db.get_recent_edges(num_queries as u64)?;
@@ -253,7 +255,7 @@ async fn get_next_query_from_kg<T: UserDefinedRelationType>(
 async fn get_next_query_from_concept(
     query: &str,
     concepts: &[(String, String, String)],
-) -> Result<String, ReachError> {
+) -> Result<String, RsearchError> {
 
     let concepts_str = concepts
         .iter()
@@ -329,7 +331,7 @@ pub async fn build_kg_iteratively<T: UserDefinedRelationType>(
     num_iter: i8, // Number of Iterations
     num_depth: i8,// Depth for Random Walk
     num_queries: i8, // Number of Queries to consider for next query
-) -> Result<(), ReachError> {
+) -> Result<(), RsearchError> {
     for itr in 0..num_iter {
         println!("{}", "-----------------".repeat(5));
         info!("Iteration: {}", itr);
@@ -353,7 +355,7 @@ async fn build_kg<T: UserDefinedRelationType>(
     db: &mut Reachdb<T>,
     query: &str,
     ftype: &str,
-) -> Result<(), ReachError> {
+) -> Result<(), RsearchError> {
     let urls = get_relevent_urls(&query, ftype).await?;
     info!("Total {} URLs fetched", urls.len());
 
@@ -404,7 +406,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_summarizer() -> Result<(), super::ReachError> {
+    async fn test_summarizer() -> Result<(), super::RsearchError> {
         let query = "What are Diffusion Models?";
         let urls = super::get_relevent_urls(&query, "").await?;
         println!("{urls:?}");
@@ -418,7 +420,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_kg_gen() -> Result<(), super::ReachError> {
+    async fn test_kg_gen() -> Result<(), super::RsearchError> {
         let query = "How can we use RL for chip placements?";
         let urls = super::get_relevent_urls(&query, "").await?;
         println!("{urls:#?}");
@@ -433,7 +435,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_build_multiple_kg() -> Result<(), super::ReachError> {
+    async fn test_build_multiple_kg() -> Result<(), super::RsearchError> {
         let query = vec![
             "How can we use RL for chip placements?",
             "What are the recent advancements in RL?",

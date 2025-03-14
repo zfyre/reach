@@ -1,39 +1,6 @@
 
-// use crate::{apis::ArxivOutput, VERSION};
-// use crate::errors::ReachError;
-// use colored::Colorize;
-// use serde_json::value;
-use {
-    minimad::{OwningTemplateExpander, TextTemplate},
-    termimad::crossterm::style::Color::*,
-    termimad::*,
-};
+use super::{OwningTemplateExpander, Color, ROUNDED_TABLE_BORDER_CHARS, Alignment, MadSkin, TextTemplate, gray, terminal_size, FmtText, RawOuts, ReachTuiError, ArxivOutput};
 
-
-pub trait TerminalDisplay {
-    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError>;
-    fn get_display_template() -> &'static str;
-    fn get_expander() -> OwningTemplateExpander<'static> {
-        let mut expander = OwningTemplateExpander::new();
-        expander
-            .set("app-name", "Reach")
-            .set("app-version", VERSION);
-
-        expander
-    }
-    fn make_skin() -> MadSkin {
-        let mut skin = MadSkin::default();
-        skin.set_headers_fg(AnsiValue(178));
-        skin.headers[2].set_fg(gray(22));
-        skin.bold.set_fg(Yellow);
-        skin.italic.set_fg(White);
-        skin.scrollbar.thumb.set_fg(AnsiValue(178));
-        skin.table_border_chars = ROUNDED_TABLE_BORDER_CHARS;
-        skin.paragraph.align = Alignment::Left;
-        skin.table.align = Alignment::Left;
-        skin
-    }
-}
 
 pub struct GoogleTerminalDisplay;
 pub struct GeminiTerminalDisplay;
@@ -55,7 +22,7 @@ impl TerminalDisplay for GoogleTerminalDisplay {
         |-|-|
         "#
     }
-    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError> {
+    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachTuiError> {
         let mut expander = Self::get_expander();
         for raws in raw_outs {
             match raws {
@@ -91,7 +58,7 @@ impl TerminalDisplay for GeminiTerminalDisplay {
         }
         "
     }
-    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError> {
+    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachTuiError> {
         let mut expander = Self::get_expander();
         for raws in raw_outs {
             match raws {
@@ -135,7 +102,7 @@ impl TerminalDisplay for ArxivTerminalDisplay {
 
         "#
     }
-    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachError> {
+    fn display_in_terminal(raw_outs: Vec<RawOuts>) -> Result<(), ReachTuiError> {
         let mut expander = Self::get_expander();
         for raws in raw_outs {
             match raws {
@@ -167,8 +134,7 @@ impl TerminalDisplay for ArxivTerminalDisplay {
 
 #[cfg(test)]
 mod tests {
-    use colored::Colorize;
-    use termimad::{crossterm::style::Color::*, MadSkin, *};
+    use termimad::{crossterm::style::{Color::*, Stylize}, MadSkin, *};
 
     const TEST_STRING: &str = "\"Grokking\" is a term coined by Robert A. Heinlein in his 1961 science fiction novel *Stranger in a Strange Land*. It means to understand something so thoroughly and completely that you become one with it. It goes beyond intellectual understanding and involves intuition, empathy, and deep connection.\n\nHere's a breakdown of what \"grokking\" entails:\n\n*   **Deep, intuitive understanding:** It's not just knowing facts and figures, but having an instinctp of how something works, its purpose, and its implications.\n*   **Empathy and connection:** It involves understanding something from the inside out, being able to put yourself in its place and see the world from its perspective.\n*   **Incorporation into your being:** When you grok something, it becomes a part of you. It changes the way you think and interact with the world.\n*   **Agreement and acceptance:** It often implies a deep level of acceptance and agreement with the thing you are grokking. It's not just understanding it, but also aligning with it.\n*   **A sense of oneness:** Ultimately, grokking is about achieving a sense of oneness with the subject of your understanding.\n\n**In essence, grokking is about achieving a holistic and profound understanding that transcends mere intellectual knowledge.**\n\n**Examples:**\n\n*   A programmer might grok a programming language when they understand not just the syntax and commands, but also the underlying philosophy and design principles, allowing them to write elegant and efficient code.\n*   A musician might grok a piece of music when they understand not only the notes and rhythms, but also the emotions and intentions behind it, allowing them to perform it with passion and authenticity.\n*   A therapist might grok a patient when they understand not only the patient's words and actions, but also their underlying motivations, fears, and desires, allowing them to provide effective treatment.\n\nWhile a fictional word, \"grokking\" has become a useful term to describe a superior level of understanding in various fields.\n```python\n def main():\n\treturn \"Hello World\"\n```";
 

@@ -1,9 +1,8 @@
-use log::trace;
-use super::{ReachError, Value};
+use super::{RsearchError, Value, tokio, trace};
 
 // Using Python-Crawl4Ai process
 #[allow(dead_code)]
-pub async fn get_markdown(url: &str) -> Result<String, ReachError> {
+pub async fn get_markdown(url: &str) -> Result<String, RsearchError> {
     let output = tokio::process::Command::new(".venv/Scripts/python.exe") // Use Python from virtual environment
         .arg("src/scripts/crawl.py")
         .arg(&format!("--url={}", url))
@@ -19,7 +18,7 @@ pub async fn get_markdown(url: &str) -> Result<String, ReachError> {
     Ok(result)
 }
 
-pub fn append_to_json(value: &Value, file_path: &str) -> Result<(), ReachError> {
+pub fn append_to_json(value: &Value, file_path: &str) -> Result<(), RsearchError> {
 
     let path = std::path::Path::new(file_path);
     let existing_json = if path.exists() {
@@ -42,7 +41,7 @@ pub fn append_to_json(value: &Value, file_path: &str) -> Result<(), ReachError> 
         serde_json::from_str(&existing_json)?
     };
 
-    if let (Value::Object(ref mut map), Value::Object(new_map)) = (&mut existing_data, value) {
+    if let (Value::Object(map), Value::Object(new_map)) = (&mut existing_data, value) {
         map.extend(new_map.into_iter().map(|(k, v)| (k.clone(), v.clone())));
     }
 

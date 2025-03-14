@@ -21,7 +21,7 @@ use crate::errors::ReachApiError;
 
 //############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
 
-const CONFIG_FILE: &str = ".reach";
+const CONFIG_FILE: &str = ".reach_config"; //FIXME: Change this to .reach_config
 
 pub trait ReachConfigKeys {
     fn as_str(&self) -> String;

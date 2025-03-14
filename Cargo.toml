@@ -1,16 +1,26 @@
 [package]
-name = "reach-cli"
+name = "reach"
 version = "0.1.1"
 edition = "2021"
 
-[[bin]]
+[lib]
 name = "reach"
-path = "src/main.rs"
+path = "src/lib.rs"
 
 [workspace]
-members = [ "reachapi", "reachdb", "rsearch", "reachtui"]
+members = [
+    "src/reachapi",
+    "src/reachdb",
+    "src/reachtui",
+    "src/rsearch"
+]
+resolver = "2"  # Use Cargo's new dependency resolver
 
 [dependencies]
+reachapi = { path = "src/reachapi" }
+reachdb = { path = "src/reachdb" }
+# reachtui = { path = "src/reachtui" }
+rsearch = { path = "src/rsearch" }
 clap = { version = "4.5.28", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.11", features = ["json"] }
@@ -19,6 +29,5 @@ colored = "3.0.0"
 termimad = "0.31.2"
 scraper = "0.22.0"
 regex = "1.11.1"
-reachdb = { path = "reachdb" }
 log = "0.4.26"
 env_logger = "0.11.6"
