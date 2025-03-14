@@ -1019,6 +1019,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "metadata"
+version = "0.1.0"
+
+[[package]]
 name = "mime"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1331,14 +1335,15 @@ dependencies = [
  "colored",
  "env_logger",
  "log",
+ "metadata",
  "reachapi",
  "reachdb",
+ "reachtui",
  "regex",
  "reqwest",
  "rsearch",
  "scraper",
  "serde_json",
- "termimad",
  "tokio",
 ]
 
@@ -1370,6 +1375,11 @@ dependencies = [
 [[package]]
 name = "reachtui"
 version = "0.1.0"
+dependencies = [
+ "metadata",
+ "reachapi",
+ "termimad",
+]
 
 [[package]]
 name = "redox_syscall"

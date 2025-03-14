@@ -1,5 +1,9 @@
 
-use super::{OwningTemplateExpander, Color, ROUNDED_TABLE_BORDER_CHARS, Alignment, MadSkin, TextTemplate, gray, terminal_size, FmtText, RawOuts, ReachTuiError, ArxivOutput};
+use super::{
+    TextTemplate, terminal_size, FmtText,
+    RawOuts, ReachTuiError, ArxivOutput,
+    TerminalDisplay,
+};
 
 
 pub struct GoogleTerminalDisplay;

@@ -17,6 +17,7 @@ pub use errors::*;
 //################################################ MEMBER IMPORTS ################################################//
 
 use reachapi::{RawOuts, ArxivOutput};
+use metadata::VERSION;
 
 //############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
 

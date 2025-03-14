@@ -19,11 +19,7 @@ use serde_json::Error as SerdeError;
 
 use reachdb::ReachdbError;
 use rsearch::{RsearchError, build_kg_iteratively};
+use metadata::*;
 
 //############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
-
-pub const AUTHOR: &str = "Me <kshitiz4kaushik@gmail.com>";
-pub const VERSION: &str = "1.0.0";
-pub const CONFIG_FILE: &str = ".reach-config";
-
 

@@ -8,25 +8,28 @@ name = "reach"
 path = "src/lib.rs"
 
 [workspace]
-members = [
+members = [ "src/metadata",
     "src/reachapi",
     "src/reachdb",
     "src/reachtui",
-    "src/rsearch"
+    "src/rsearch",
+    "src/metadata"
 ]
 resolver = "2"  # Use Cargo's new dependency resolver
 
 [dependencies]
 reachapi = { path = "src/reachapi" }
 reachdb = { path = "src/reachdb" }
-# reachtui = { path = "src/reachtui" }
+reachtui = { path = "src/reachtui" }
 rsearch = { path = "src/rsearch" }
+metadata = { path = "src/metadata" }
+
 clap = { version = "4.5.28", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.11", features = ["json"] }
 serde_json = "1.0"
 colored = "3.0.0"
-termimad = "0.31.2"
+
 scraper = "0.22.0"
 regex = "1.11.1"
 log = "0.4.26"
