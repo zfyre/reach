@@ -97,6 +97,7 @@ Helper function to create centered rectangles for popup displays like the help m
 - `Esc` - Exit edit mode
 
 ## Layout
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                         Sessions                            │
 ├────────────────────────────────────┬────────────────────────┤
@@ -111,6 +112,7 @@ Helper function to create centered rectangles for popup displays like the help m
 ├────────────────────────────────────┴────────────────────────┤
 │                       Input Field                           │
 └─────────────────────────────────────────────────────────────┘
+```
 
 ## Customization
 
