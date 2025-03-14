@@ -1,6 +1,8 @@
 //! Configuration for Arxiv
 
-use super::{get_config_path, Parser, ReachApiError, fs, FromStr, io, io::Write};
+use super::{Parser, ReachApiError, fs, FromStr, io, io::Write, ReachConfig, ReachConfigKeys};
+
+//########################################## KEYS FOR ARXIV API ##########################################//
 
 /// The keys that can be configured for Arxiv
 ///
@@ -19,9 +21,9 @@ pub enum ArxivKeys {
     Categories,
 } //TODO: Maybe use this as a field of ArxivConfig??!!
 
-impl ArxivKeys {
+impl ReachConfigKeys for ArxivKeys {
     /// Get the key as a string
-    pub fn as_str(&self) -> String {
+    fn as_str(&self) -> String {
         match self {
             &Self::IncludeWords => format!("{}.REACH_INCLUDE_WORDS", ArxivConfig::prefix()),
             &Self::ExcludeWords => format!("{}.REACH_EXCLUDE_WORDS", ArxivConfig::prefix()),
@@ -30,6 +32,8 @@ impl ArxivKeys {
         }
     }
 }
+
+//########################################## SUBCOMMAND FOR ARXIV API ##########################################//
 
 /// The configuration for Arxiv
 ///
@@ -61,14 +65,17 @@ pub struct ArxivConfig {
     pub show: bool,
 }
 
-impl ArxivConfig {
+impl ReachConfig for ArxivConfig {
+
+    type Repr = Vec<(String, Vec<String>)>;
+
     /// Read the configuration from the file
     ///
     /// # Returns
     ///
     /// * `Result<Vec<(String, Vec<String>)>, Error>` - The result of the operation
-    pub fn read_config() -> Result<Vec<(String, Vec<String>)>, ReachApiError> {
-        let config_path = get_config_path();
+    fn read_config() -> Result<Self::Repr, ReachApiError> {
+        let config_path = Self::get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
         }
@@ -102,7 +109,7 @@ impl ArxivConfig {
     /// # Returns
     ///
     /// * `Result<(), Error>` - The result of the operation
-    pub fn get_config_from_user() -> Result<(), ReachApiError> {
+    fn get_config_from_user() -> Result<(), ReachApiError> {
         let mut include_words = String::new();
         let mut exclude_words = String::new();
         let mut authors = String::new();
@@ -125,16 +132,16 @@ impl ArxivConfig {
         io::stdin().read_line(&mut authors)?;
 
         if !include_words.trim().is_empty() {
-            save_config(&ArxivKeys::IncludeWords.as_str(), &include_words.trim())?;
+            Self::save_config(&ArxivKeys::IncludeWords.as_str(), &include_words.trim())?;
         }
         if !exclude_words.trim().is_empty() {
-            save_config(&ArxivKeys::ExcludeWords.as_str(), &exclude_words.trim())?;
+            Self::save_config(&ArxivKeys::ExcludeWords.as_str(), &exclude_words.trim())?;
         }
         if !categories.trim().is_empty() {
-            save_config(&ArxivKeys::Categories.as_str(), &categories.trim())?;
+            Self::save_config(&ArxivKeys::Categories.as_str(), &categories.trim())?;
         }
         if !authors.trim().is_empty() {
-            save_config(&ArxivKeys::Authors.as_str(), &authors.trim())?;
+            Self::save_config(&ArxivKeys::Authors.as_str(), &authors.trim())?;
         }
 
         Ok(())

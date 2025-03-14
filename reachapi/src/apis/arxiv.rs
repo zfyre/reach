@@ -1,4 +1,8 @@
-use super::{HashMap, Client, ArxivConfig, ArxivKeys, RawOuts, ReachApiError};
+use super::{
+    ArxivConfig, ArxivKeys, Client,
+    HashMap, RawOuts, ReachApiError,
+    ReachConfig, ReachConfigKeys,
+};
 
 #[derive(Debug)]
 struct ArxivQuery<'a> {
@@ -98,22 +102,22 @@ impl Default for ArxivQuery<'_> {
         Self {
             include_keywords: default_config
                 .get(&ArxivKeys::IncludeWords.as_str())
-                .expect("Gemini API key is not available")
+                .expect("Include Keywords not available")
                 .to_owned(),
 
             exclude_keywords: default_config
                 .get(&ArxivKeys::ExcludeWords.as_str())
-                .expect("Gemini API key is not available")
+                .expect("Exclude Keywords not available")
                 .to_owned(),
 
             _authors: default_config
                 .get(&ArxivKeys::Authors.as_str())
-                .expect("Gemini API key is not available")
+                .expect("Authors not available")
                 .to_owned(),
 
             categories: default_config
                 .get(&ArxivKeys::Categories.as_str())
-                .expect("Gemini API key is not available")
+                .expect("Categories not available")
                 .to_owned(),
 
             start: "0",
@@ -171,7 +175,6 @@ pub async fn arxive_search(
 
     // Find all entry elements
     for entry in doc.descendants().filter(|n| n.has_tag_name("entry")) {
-
         let title = entry
             .children()
             .find(|n| n.has_tag_name("title"))
@@ -188,11 +191,10 @@ pub async fn arxive_search(
             .and_then(|n| Some(n.text().unwrap_or("").trim().to_string()));
 
         if let (Some(title), Some(url), Some(summary)) = (title, url, summary) {
-            results.push(RawOuts::RawArxivOut(
-                ArxivOutput {
-                    title,
-                    url,
-                    summary
+            results.push(RawOuts::RawArxivOut(ArxivOutput {
+                title,
+                url,
+                summary,
             }));
         }
     }
@@ -203,6 +205,8 @@ mod tests {
     #[cfg(feature = "requires_config")]
     #[tokio::test]
     async fn check_arxive_search() {
-        let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2").await.unwrap();
+        let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2")
+            .await
+            .unwrap();
     }
 }

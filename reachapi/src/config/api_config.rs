@@ -1,7 +1,8 @@
-use clap::Parser;
-use std::io::{self, Write};
-use std::{fs, str::FromStr};
-use crate::ReachApiError;
+//! Configuration for the API keys
+
+use super::{Parser, ReachApiError, fs, FromStr, io, io::Write, ReachConfig, ReachConfigKeys};
+
+//########################################## KEYS FOR GOOGLE & SEARCH APIS ##########################################//
 
 /// The API keys that can be configured
 ///
@@ -17,9 +18,9 @@ pub enum ApiKeys {
     Gemini,
 } //TODO: Maybe use this as a field of ApiConfig??!!
 
-impl ApiKeys {
+impl ReachConfigKeys for ApiKeys {
     /// Get the key as a string
-    pub fn as_str(&self) -> String {
+    fn as_str(&self) -> String {
         match self {
             &Self::Google => format!("{}.REACH_GOOGLE_SEARCH_API_KEY", ApiConfig::prefix()),
             &Self::SearchEngine => format!("{}.REACH_GOOGLE_SEARCH_ENGINE_ID", ApiConfig::prefix()),
@@ -27,6 +28,8 @@ impl ApiKeys {
         }
     }
 }
+
+//########################################## SUBCOMMAND FOR GOOGLE & SEARCH APIS ##########################################//
 
 /// The configuration for the API keys
 ///
@@ -53,7 +56,9 @@ pub struct ApiConfig {
     pub show: bool,
 }
 
-impl ApiConfig {
+impl ReachConfig for ApiConfig {
+    
+    type Repr = Vec<(String, String)>;
     /// Read the configuration from the file
     ///     
     /// # Returns
@@ -63,8 +68,8 @@ impl ApiConfig {
     /// # Errors
     ///
     /// * If the file cannot be read
-    pub fn read_config() -> Result<Vec<(String, String)>, ReachApiError> {
-        let config_path = get_config_path();
+    fn read_config() -> Result<Self::Repr, ReachApiError> {
+        let config_path = Self::get_config_path();
         if !config_path.exists() {
             return Ok(vec![]);
         }
@@ -97,7 +102,7 @@ impl ApiConfig {
     /// * If the input/output fails
     ///
     /// * If the configuration cannot be saved / read / written
-    pub fn get_config_from_user() -> Result<(), ReachApiError> {
+    fn get_config_from_user() -> Result<(), ReachApiError> {
         let mut google_api_key = String::new();
         let mut search_engine_id = String::new();
         let mut gemini_api_key = String::new();
@@ -115,13 +120,13 @@ impl ApiConfig {
         io::stdin().read_line(&mut gemini_api_key)?;
 
         if !google_api_key.trim().is_empty() {
-            save_config(&ApiKeys::Google.as_str(), &google_api_key.trim())?;
+            Self::save_config(&ApiKeys::Google.as_str(), &google_api_key.trim())?;
         }
         if !search_engine_id.trim().is_empty() {
-            save_config(&ApiKeys::SearchEngine.as_str(), &search_engine_id.trim())?;
+            Self::save_config(&ApiKeys::SearchEngine.as_str(), &search_engine_id.trim())?;
         }
         if !gemini_api_key.trim().is_empty() {
-            save_config(&ApiKeys::Gemini.as_str(), &gemini_api_key.trim())?;
+            Self::save_config(&ApiKeys::Gemini.as_str(), &gemini_api_key.trim())?;
         }
         Ok(())
     }

@@ -1,70 +1,63 @@
 
-// Emitting Following Modules
+//########################################## EMITTING FOLLOWING MODULES ##########################################//
+
 mod api_config;
 pub use api_config::*;
-
 mod arxiv_config;
 pub use arxiv_config::*;
 
-// External Imports
+//############################################### EXTERNAL IMPORTS ###############################################//
+
 use std::{env, fs, path::PathBuf, str::FromStr};
 use clap::Parser;
-use std::io::{self, Write};
+use std::io::{self};
 
-// Internal Imports
+//############################################### INTERNAL IMPORTS ###############################################//
+
 use crate::errors::ReachApiError;
 
-// Member Imports
+//################################################ MEMBER IMPORTS ################################################//
 
 
-// Common Functions (May be Emitted)
-trait Config {
-    fn read_config() -> Result<Self, ReachApiError>
-    where
-        Self: Sized;
+//############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
+
+const CONFIG_FILE: &str = ".reach";
+
+pub trait ReachConfigKeys {
+    fn as_str(&self) -> String;
 }
 
-/// Get the path to the configuration file
-///
-/// # Returns
-///
-/// * `PathBuf` - The path to the configuration file
-fn get_config_path() -> PathBuf {
-    let home = env::var("HOME")
-        .or_else(|_| env::var("USERPROFILE"))
-        .unwrap();
-    PathBuf::from(home).join(CONFIG_FILE)
-}
+pub trait ReachConfig {
+    type Repr;
+    
+    fn read_config() -> Result<Self::Repr, ReachApiError>;
 
-/// Save the configuration to the file
-///
-/// # Arguments
-///
-/// * `key` - The key to be saved
-///
-/// * `value` - The value to be saved
-///
-/// # Returns
-///
-/// * `Result<(), Error>` - The result of the operation
-///
-/// # Errors
-///
-/// * If the file cannot be read or written to
-fn save_config(key: &str, value: &str) -> Result<(), ReachApiError> {
-    let config_path = get_config_path();
-    let content = if config_path.exists() {
-        let existing = fs::read_to_string(&config_path)?;
-        let mut lines: Vec<String> = existing
-            .lines()
-            .filter(|line| !line.starts_with(key))
-            .map(|line| line.to_string())
-            .collect();
-        lines.push(format!("{}={}", key, value));
-        lines.join("\n")
-    } else {
-        format!("{}={}", key, value)
-    };
-    fs::write(config_path, content)?;
-    Ok(())
+    fn get_config_from_user() -> Result<(), ReachApiError>;
+
+    fn prefix() -> String;
+
+    fn get_config_path() -> PathBuf {
+        let home = env::var("HOME")
+            .or_else(|_| env::var("USERPROFILE"))
+            .unwrap();
+        PathBuf::from(home).join(CONFIG_FILE)
+    }
+
+    fn save_config(key: &str, value: &str) -> Result<(), ReachApiError> {
+        let config_path = Self::get_config_path();
+        let content = if config_path.exists() {
+            let existing = fs::read_to_string(&config_path)?;
+            let mut lines: Vec<String> = existing
+                .lines()
+                .filter(|line| !line.starts_with(key))
+                .map(|line| line.to_string())
+                .collect();
+            lines.push(format!("{}={}", key, value));
+            lines.join("\n")
+        } else {
+            format!("{}={}", key, value)
+        };
+        fs::write(config_path, content)?;
+        Ok(())
+    }
 }

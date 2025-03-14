@@ -1,27 +1,29 @@
-// Emitting Following Modules
+//########################################## EMITTING FOLLOWING MODULES ##########################################//
+
 mod arxiv;
 pub use arxiv::*;
-
 mod gemini;
 pub use gemini::*;
-
 mod google;
 pub use google::*;
 
+//############################################### EXTERNAL IMPORTS ###############################################//
 
-// External Imports
 use std::collections::HashMap;
 use serde_json::{Value, json};
 use reqwest::Client;
 
-// Internal Imports
+//############################################### INTERNAL IMPORTS ###############################################//
+
 use crate::config::{ArxivConfig, ArxivKeys};
 use crate::ReachApiError;
+use crate::ReachConfig;
+use crate::ReachConfigKeys;
 
-// Member Imports
+//################################################ MEMBER IMPORTS ################################################//
 
 
-// Common Functions (May be Emitted)
+//############################ COMMON FUNCTIONS/TRAITS/ENUMS (MAY/MAY-NOT BE EMITTED) ############################//
 
 #[derive(Debug)]
 pub enum RawOuts {
