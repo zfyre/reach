@@ -3,6 +3,8 @@
 mod api_display;
 pub use api_display::*;
 
+pub mod tui;
+
 //############################################### EXTERNAL IMPORTS ###############################################//
 
 use minimad::{OwningTemplateExpander, TextTemplate};

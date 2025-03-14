@@ -8,6 +8,8 @@ use reach::{ReachError, AUTHOR, VERSION};
 use reachapi::{arxive_search, gemini_query, google_search, ApiConfig, ApiKeys, ArxivConfig, ReachConfig, ReachConfigKeys};
 use rsearch::Rsearch;
 
+use reachtui::tui::{App, run_app, setup_terminal, restore_terminal};
+
 /// The commands that can be executed
 /// 
 /// * `Config` - Configure API keys
@@ -65,10 +67,34 @@ async fn main() -> Result<(), ReachError> {
     let args = Cli::parse();
     // println!("{args:?}");
 
+    // Example of adding a TUI subcommand to your CLI
+    // You would integrate this with your existing command structure
+    
+    let matches = clap::Command::new("reach")
+        // ...existing command setup...
+        .subcommand(clap::Command::new("tui").about("Start the Terminal User Interface"))
+        .get_matches();
+        
+    if matches.subcommand_matches("tui").is_some() {
+        // Start the TUI mode
+        let mut terminal = setup_terminal()?;
+        let app = App::new();
+        let res = run_app(&mut terminal, app);
+        
+        // restore terminal
+        restore_terminal(&mut terminal)?;
+        
+        if let Err(err) = res {
+            println!("Error: {:?}", err);
+        }
+        
+        return Ok(());
+    }
+
     match args.command {
         Some(Commands::ApiConfig(config)) => { // Change Api Config!
             if config.show {
-                let config_list = ApiConfig::read_config()?;
+                let config_list = ApiConfig::read_config()?; 
                 if config_list.is_empty() {
                     println!("No configuration found.");
                 } else {
@@ -81,13 +107,13 @@ async fn main() -> Result<(), ReachError> {
             }
 
             // Prompt the user to input the config (essentially API-Keys)
-            ApiConfig::get_config_from_user()?;
+            ApiConfig::get_config_from_user()?; 
 
             Ok(())
         }
         Some(Commands::ArxivConfig(config)) => { // Change Arxiv config
             if config.show {
-                let config_list = ArxivConfig::read_config()?;
+                let config_list = ArxivConfig::read_config()?; 
                 if config_list.is_empty() {
                     println!("No configuration found.");
                 } else {
@@ -100,7 +126,7 @@ async fn main() -> Result<(), ReachError> {
             }
 
             // Prompt the user to input the config (essentially API-Keys)
-            ArxivConfig::get_config_from_user()?;
+            ArxivConfig::get_config_from_user()?; 
             Ok(())
         }
         Some(Commands::Rsearch(cmd)) => {

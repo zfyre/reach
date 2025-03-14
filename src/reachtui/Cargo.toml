@@ -7,3 +7,5 @@ edition = "2024"
 reachapi = { path = "../reachapi" }
 metadata = { path = "../metadata" }
 termimad = "0.31.2"
+ratatui = "0.24.0"
+crossterm = "0.27.0"
