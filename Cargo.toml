@@ -18,7 +18,7 @@ members = [ "src/metadata",
     "src/reachtui",
     "src/rsearch",
     "src/metadata"
-]
+, "src/rchat"]
 resolver = "2"  # Use Cargo's new dependency resolver
 
 [dependencies]
