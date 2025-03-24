@@ -1,4 +1,4 @@
-use diesel::{prelude::*, sql_types::Array};
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 // use serde_json::Value;
 use diesel::deserialize::{FromSql, FromSqlRow};
@@ -6,7 +6,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{Output, ToSql};
 use diesel::{deserialize, serialize};
-use diesel::sql_types::{Integer, Record, Text};
+use diesel::sql_types::{Record, Text};
 
 // ================== Rust Schema for the history table ==================
 
