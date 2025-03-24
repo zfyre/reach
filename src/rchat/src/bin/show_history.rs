@@ -6,7 +6,7 @@ use rchat::*;
 // extern crate diesel;
 
 fn main() {
-    use self::schema::rchat::history::dsl::*;
+    use self::schema::rchat::history::dsl::*; // Keep it under the fundtional to prevent polluting the module namespace
 
     let connection = &mut establish_connection();
 
