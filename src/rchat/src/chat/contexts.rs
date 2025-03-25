@@ -178,6 +178,7 @@ impl ChatHistory {
             .expect("Gemini API key is not available");
 
         let mut entry_str = String::new();
+
         for entry in entries {
             entry_str.push_str(&format!(
             r#"
