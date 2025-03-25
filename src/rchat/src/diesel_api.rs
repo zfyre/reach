@@ -1,15 +1,15 @@
 use super::models::{Content, HistoryEntry, NewHistoryEntry};
 use diesel::prelude::*;
 use dotenvy::dotenv;
-use std::env; 
+use std::env;
 
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
-    
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    
+
     PgConnection::establish(&database_url)
-    .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
 pub fn create_history(
@@ -32,7 +32,7 @@ pub fn create_history(
         .get_result(conn)
         .expect("Error saving new history")
 
-    /* If we want to just save the new entries without returning the added entries */ 
+    /* If we want to just save the new entries without returning the added entries */
     // diesel::insert_into(history::table)
     //     .values(&new_history)
     //     .execute(conn)
@@ -41,7 +41,7 @@ pub fn create_history(
 
 pub fn create_histories(
     conn: &mut PgConnection,
-    new_histories: &[NewHistoryEntry]
+    new_histories: &[NewHistoryEntry],
 ) -> Vec<HistoryEntry> {
     use super::schema::rchat::history;
 
@@ -56,7 +56,7 @@ pub fn get_history_by_key(
     conn: &mut PgConnection,
     sess_id: i32,
     msg_id: i32,
-    lvl: i32
+    lvl: i32,
 ) -> Option<HistoryEntry> {
     use super::schema::rchat::history;
 
@@ -69,30 +69,26 @@ pub fn get_history_by_key(
     chat_hist
 }
 
-pub fn get_history_by_level(
-    conn: &mut PgConnection,
-    sess_id: i32,
-    lvl: i32
-) -> Vec<HistoryEntry> {
+pub fn get_history_by_level(conn: &mut PgConnection, sess_id: i32, lvl: i32, chunk_size: usize) -> Vec<HistoryEntry> {
     use super::schema::rchat::history;
 
     let chat_hist = history::table
         .filter(history::session_id.eq(sess_id))
         .filter(history::level.eq(lvl))
+        .order(history::message_id.desc())
+        .limit(chunk_size as i64)
         .load::<HistoryEntry>(conn)
         .expect("Error loading history");
 
     chat_hist
 }
 
-pub fn get_history_by_session(
-    conn: &mut PgConnection,
-    sess_id: i32
-) -> Vec<HistoryEntry> {
+pub fn get_history_by_session(conn: &mut PgConnection, sess_id: i32, chunk_size: usize) -> Vec<HistoryEntry> {
     use super::schema::rchat::history;
 
     let chat_hist = history::table
         .filter(history::session_id.eq(sess_id))
+        .limit(chunk_size as i64)
         .load::<HistoryEntry>(conn)
         .expect("Error loading history");
 
@@ -104,7 +100,7 @@ pub fn update_history(
     sess_id: i32,
     msg_id: i32,
     lvl: i32,
-    new_content: &Content
+    new_content: &Content,
 ) -> HistoryEntry {
     use super::schema::rchat::history;
 
@@ -117,20 +113,18 @@ pub fn update_history(
     updated_history
 }
 
-pub fn update_history_with_level( // Updates the level to level + 1
+pub fn update_history_with_level(
+    // Updates the level to level + 1
     conn: &mut PgConnection,
     sess_id: i32,
     msg_id: i32,
     lvl: i32,
-    new_content: &Content
+    new_content: &Content,
 ) -> HistoryEntry {
     use super::schema::rchat::history;
 
     let updated_history = diesel::update(history::table.find((sess_id, msg_id, lvl)))
-        .set((
-            history::content.eq(new_content),
-            history::level.eq(lvl + 1)
-        ))
+        .set((history::content.eq(new_content), history::level.eq(lvl + 1)))
         .returning(HistoryEntry::as_returning())
         .get_result(conn)
         .expect("Error updating history");

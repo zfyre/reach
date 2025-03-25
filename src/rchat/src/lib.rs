@@ -6,6 +6,10 @@ pub mod schema;
 pub mod diesel_api;
 pub mod chat;
 pub mod error;
+
+pub use chat::chat::Chat;
+pub use error::RchatError;
+
 // use models::{Content, HistoryEntry};
 
 // TODO: Use the dotenv for the reachdb database URL
