@@ -16,7 +16,10 @@ use std::{
 
 //############################################### INTERNAL IMPORTS ###############################################//
 
-use crate::diesel_api::{create_history, establish_connection, get_history_by_level};
+use crate::diesel_api::{
+    create_history, delete_histories_by_level, establish_connection, get_history_by_level,
+    get_num_history_entries,
+};
 use crate::error::RchatError;
 use crate::models::{Content, HistoryEntry};
 
@@ -35,7 +38,7 @@ use crate::models::{Content, HistoryEntry};
 // }
 
 #[derive(Clone)]
-enum Message {
+pub enum Message {
     SysMsg(String),
     UserMsg(String),
     LlmMsg(String),

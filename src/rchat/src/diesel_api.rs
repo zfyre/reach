@@ -1,3 +1,5 @@
+use crate::RchatError;
+
 use super::models::{Content, HistoryEntry, NewHistoryEntry};
 use diesel::prelude::*;
 use dotenvy::dotenv;
@@ -39,7 +41,7 @@ pub fn create_history(
     //     .expect("Error saving new history");
 }
 
-pub fn create_histories(
+fn create_histories(
     conn: &mut PgConnection,
     new_histories: &[NewHistoryEntry],
 ) -> Vec<HistoryEntry> {
@@ -52,7 +54,7 @@ pub fn create_histories(
         .expect("Error saving new histories")
 }
 
-pub fn get_history_by_key(
+fn get_history_by_key(
     conn: &mut PgConnection,
     sess_id: i32,
     msg_id: i32,
@@ -69,7 +71,12 @@ pub fn get_history_by_key(
     chat_hist
 }
 
-pub fn get_history_by_level(conn: &mut PgConnection, sess_id: i32, lvl: i32, chunk_size: usize) -> Vec<HistoryEntry> {
+pub fn get_history_by_level(
+    conn: &mut PgConnection,
+    sess_id: i32,
+    lvl: i32,
+    chunk_size: usize,
+) -> Vec<HistoryEntry> {
     use super::schema::rchat::history;
 
     let chat_hist = history::table
@@ -83,7 +90,11 @@ pub fn get_history_by_level(conn: &mut PgConnection, sess_id: i32, lvl: i32, chu
     chat_hist
 }
 
-pub fn get_history_by_session(conn: &mut PgConnection, sess_id: i32, chunk_size: usize) -> Vec<HistoryEntry> {
+fn get_history_by_session(
+    conn: &mut PgConnection,
+    sess_id: i32,
+    chunk_size: usize,
+) -> Vec<HistoryEntry> {
     use super::schema::rchat::history;
 
     let chat_hist = history::table
@@ -95,7 +106,7 @@ pub fn get_history_by_session(conn: &mut PgConnection, sess_id: i32, chunk_size:
     chat_hist
 }
 
-pub fn update_history(
+fn update_history(
     conn: &mut PgConnection,
     sess_id: i32,
     msg_id: i32,
@@ -113,7 +124,7 @@ pub fn update_history(
     updated_history
 }
 
-pub fn update_history_with_level(
+fn update_history_with_level(
     // Updates the level to level + 1
     conn: &mut PgConnection,
     sess_id: i32,
@@ -130,4 +141,38 @@ pub fn update_history_with_level(
         .expect("Error updating history");
 
     updated_history
+}
+
+pub fn get_num_history_entries(conn: &mut PgConnection, sess_id: i32, lvl: i32) -> i64 {
+    use super::schema::rchat::history;
+
+    let num_entries = history::table
+        .filter(history::session_id.eq(sess_id))
+        .filter(history::level.eq(lvl))
+        .count()
+        .get_result(conn)
+        .expect("Error getting number of history entries");
+
+    num_entries
+}
+
+
+pub fn delete_histories_by_level(
+    conn: &mut PgConnection,
+    sess_id: i32,
+    entries: &[HistoryEntry]
+) -> () 
+{
+    use super::schema::rchat::history;
+
+    let msg_ids: Vec<i32> = entries.iter().map(|entry| entry.message_id).collect();
+    let levels: Vec<i32> = entries.iter().map(|entry| entry.level).collect();
+
+    diesel::delete(history::table.filter(history::session_id.eq(sess_id))
+        .filter(history::message_id.eq_any(&msg_ids))
+        .filter(history::level.eq_any(&levels))
+    )
+    .execute(conn)
+    .expect("Error deleting history");
+
 }

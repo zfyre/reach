@@ -1,11 +1,6 @@
-
-use std::primitive;
-
 use super::{
-    gemini_query, ApiConfig, ApiKeys, RawOuts, ReachApiError, ReachConfig, ReachConfigKeys,
-    HashMap, io, Write,
-    Message, RchatError,
-    ChatContext,
+    ApiConfig, ApiKeys, ChatContext, HashMap, Message, RawOuts, RchatError, ReachApiError,
+    ReachConfig, ReachConfigKeys, Write, gemini_query, io,
 };
 
 enum ChatCode {
@@ -21,7 +16,7 @@ pub struct Chat {
 }
 
 impl<'life> Chat {
-    pub fn new(session_id: i32, history_chunk_size: Vec<usize>) -> Self {
+    pub fn new(session_id: i32, history_chunk_size: &[usize]) -> Self {
         Self {
             session_id,
             context: ChatContext::new(session_id, history_chunk_size),
@@ -36,7 +31,10 @@ impl<'life> Chat {
 
     pub async fn start(&mut self) -> Result<(), RchatError> {
         // Start the chat loop
-        println!("\x1b[36mStarting chat session {} ...\x1b[0m", self.session_id);
+        println!(
+            "\x1b[36mStarting chat session {} ...\x1b[0m",
+            self.session_id
+        );
         loop {
             // Get user input
             let (chat_code, query) = self.get_user_input()?;
@@ -68,14 +66,13 @@ impl<'life> Chat {
             }
 
             // Save the current chat Context to the database
-            self.context.push()?;
+            self.context.push().await?;
         }
 
         Ok(())
     }
 
     fn get_user_input(&self) -> Result<(ChatCode, Message), RchatError> {
-
         print!("\x1b[32m>\x1b[0m ");
         io::stdout().flush()?;
 
@@ -83,7 +80,7 @@ impl<'life> Chat {
         io::stdin().read_line(&mut input)?;
 
         let input = input.trim();
-        let mut chat_code= ChatCode::UserInput;
+        let mut chat_code = ChatCode::UserInput;
 
         if input.starts_with('\\') {
             match input {
@@ -151,17 +148,17 @@ impl<'life> Chat {
         let response_str = match response.pop().unwrap() {
             RawOuts::RawGeminiOut(s) => s,
             _ => unreachable!(),
-        }.trim().to_string();
+        }
+        .trim()
+        .to_string();
 
         Ok(Message::LlmMsg(response_str))
-
     }
 
     fn display_llm_response(&self, llm_response: Message) -> Result<(), RchatError> {
         io::stdout().flush()?;
-        println!(">{}", llm_response);
+        println!(">{}", llm_response.into_inner());
 
         Ok(())
     }
 }
-
