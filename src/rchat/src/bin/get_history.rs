@@ -1,6 +1,8 @@
 use rchat::models::HistoryEntry;
 use diesel::prelude::*;
 use rchat::*;
+use rchat::diesel_api::*;
+
 
 fn main() {
     use self::schema::rchat::history::dsl::history;

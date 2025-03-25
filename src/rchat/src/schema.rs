@@ -16,7 +16,6 @@ pub mod rchat {
             message_id -> Int4,
             level -> Int4,
             content -> Content,
-            tags -> Array<Nullable<Text>>,
         }
     }
 }

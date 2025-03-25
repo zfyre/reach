@@ -1,5 +1,6 @@
 use diesel::{dsl::sql, prelude::*, sql_types::Bool};
 use rchat::{models::HistoryEntry, *};
+use rchat::diesel_api::*;
 
 fn main() {
     use self::schema::rchat::history::dsl::*;

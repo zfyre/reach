@@ -1,6 +1,8 @@
 use rchat::models::*;
 use diesel::prelude::*;
 use rchat::*;
+use rchat::diesel_api::*;
+
 
 // #[macro_use]
 // extern crate diesel;

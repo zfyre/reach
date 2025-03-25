@@ -6,7 +6,7 @@ use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{Output, ToSql};
 use diesel::{deserialize, serialize};
-use diesel::sql_types::{Record, Text};
+use diesel::sql_types::{Record, Text, Array};
 
 // ================== Rust Schema for the history table ==================
 
@@ -15,20 +15,22 @@ use diesel::sql_types::{Record, Text};
 pub struct Content {
     pub user: String,
     pub system: String,
+    pub tags: Vec<String>,
 }
 
 impl Content {
-    pub fn new(user: String, system: String) -> Self {
-        Self {user, system}
+    pub fn new(user: String, system: String, tags: Vec<String>) -> Self {
+        Self {user, system, tags}
     }
 }
 
 impl ToSql<crate::schema::rchat::sql_types::Content, Pg> for Content {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
-        serialize::WriteTuple::<(Text, Text)>::write_tuple(
+        serialize::WriteTuple::<(Text, Text, Array<Text>)>::write_tuple(
             &(
                 &self.user,
                 &self.system,
+                &self.tags,
             ),
             &mut out.reborrow(),
         )
@@ -36,12 +38,13 @@ impl ToSql<crate::schema::rchat::sql_types::Content, Pg> for Content {
 }
 impl FromSql<crate::schema::rchat::sql_types::Content, Pg> for Content {
     fn from_sql(bytes: PgValue<'_>) -> deserialize::Result<Self> {
-        let (user, system) =
-            FromSql::<Record<(Text, Text)>, Pg>::from_sql(bytes)?;
+        let (user, system, tags) =
+            FromSql::<Record<(Text, Text, Array<Text>)>, Pg>::from_sql(bytes)?;
 
         Ok(Content {
             user,
             system,
+            tags
         })
     }
 }
@@ -55,7 +58,6 @@ pub struct HistoryEntry {
     pub message_id: i32,
     pub level: i32,
     pub content: Content,  // Use the manually implemented Content struct
-    pub tags: Vec<Option<String>>,
 }
 
 
@@ -66,7 +68,6 @@ pub struct NewHistoryEntry<'life> {
     pub level: i32,
     pub content: &'life Content,
     // #[diesel(sql_type = Array<Text>)]  // Explicitly set the type mapping
-    pub tags: Vec<Option<&'life str>>,
 }
 
 // #[derive(Serialize, Deserialize, Debug)]

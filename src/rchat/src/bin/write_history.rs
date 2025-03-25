@@ -1,5 +1,7 @@
-use rchat::{models::Content, *};
+use rchat::models::Content;
 use std::vec;
+use rchat::diesel_api::*;
+
 
 fn main() {
     let connection = &mut establish_connection();
@@ -8,12 +10,12 @@ fn main() {
     let level = 0;
     let content = Content::new(
         "Hi from zfyre!".to_string(),
-        "Hello there!, How can I help you?".to_string()
+        "Hello there!, How can I help you?".to_string(),
+        vec![],
     );
-    let tags = vec![Some("greeting"), Some("welcome")];
 
 
-    let history = create_history(connection, session_id, level, &content, tags);
+    let history = create_history(connection, session_id, level, &content);
     println!("Saved history entry {:?}", history);
 
 }
