@@ -1,8 +1,7 @@
 use diesel::prelude::*;
+use rchat::diesel_api::*;
 use rchat::models::{Content, HistoryEntry};
 use rchat::*;
-use rchat::diesel_api::*;
-
 
 fn main() {
     use self::schema::rchat::history::dsl::{content, history, level, session_id}; // Keep it under the fundtional to prevent polluting the module namespace
@@ -21,7 +20,7 @@ fn main() {
             content.eq(Content::new(
                 "Updated User Question".to_string(),
                 "Updated system Response".to_string(),
-                vec![]
+                vec![],
             )),
         ))
         .returning(HistoryEntry::as_returning())

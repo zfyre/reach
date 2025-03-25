@@ -1,7 +1,6 @@
+use rchat::diesel_api::*;
 use rchat::models::Content;
 use std::vec;
-use rchat::diesel_api::*;
-
 
 fn main() {
     let connection = &mut establish_connection();
@@ -14,8 +13,6 @@ fn main() {
         vec![],
     );
 
-
     let history = create_history(connection, session_id, level, &content);
     println!("Saved history entry {:?}", history);
-
 }

@@ -1,8 +1,7 @@
-use rchat::models::*;
 use diesel::prelude::*;
-use rchat::*;
 use rchat::diesel_api::*;
-
+use rchat::models::*;
+use rchat::*;
 
 // #[macro_use]
 // extern crate diesel;
@@ -20,7 +19,7 @@ fn main() {
         .expect("Error loading posts");
 
     println!("Displaying {} history", results.len());
-    for entry in results { 
+    for entry in results {
         println!("{:#?}", entry);
     }
 }

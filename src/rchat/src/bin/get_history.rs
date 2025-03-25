@@ -1,8 +1,7 @@
-use rchat::models::HistoryEntry;
 use diesel::prelude::*;
-use rchat::*;
 use rchat::diesel_api::*;
-
+use rchat::models::HistoryEntry;
+use rchat::*;
 
 fn main() {
     use self::schema::rchat::history::dsl::history;
@@ -21,5 +20,4 @@ fn main() {
         Ok(None) => println!("Could not find history entry"),
         Err(e) => println!("Error: {:?}", e),
     }
-
 }
