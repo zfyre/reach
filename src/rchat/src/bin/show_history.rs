@@ -19,11 +19,6 @@ fn main() {
 
     println!("Displaying {} history", results.len());
     for entry in results { 
-        println!("{}", entry.session_id);
-        println!("{}", entry.message_id);
-        println!("{}", entry.level);
-        println!("-----------\n");
-        println!("{:#?}", entry.content);
-        println!("{:#?}", entry.tags);
+        println!("{:#?}", entry);
     }
 }
