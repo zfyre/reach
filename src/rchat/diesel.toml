@@ -7,4 +7,4 @@ schema = "rchat"
 custom_type_derives = ["diesel::query_builder::QueryId", "Clone"]
 
 [migrations_directory]
-dir = "C:\\Users\\98107\\desktop\\How2Money\\rust\\reach-cli\\reach\\src\\rchat\\migrations"
+dir = "C:\\Users\\98107\\desktop\\zfyre\\rustprojects\\reach-cli\\reach\\src\\rchat\\migrations"

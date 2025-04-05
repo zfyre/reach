@@ -15,5 +15,3 @@ CREATE TABLE rchat.history (
     -- "tags" TEXT[] NOT NULL,
     PRIMARY KEY ("session_id", "message_id", "level")
 );
-
-

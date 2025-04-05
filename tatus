@@ -1,0 +1,103 @@
+[1mdiff --git a/src/rchat/diesel.toml b/src/rchat/diesel.toml[m
+[1mindex d2725f8..eb05e81 100644[m
+[1m--- a/src/rchat/diesel.toml[m
+[1m+++ b/src/rchat/diesel.toml[m
+[36m@@ -7,4 +7,4 @@[m [mschema = "rchat"[m
+ custom_type_derives = ["diesel::query_builder::QueryId", "Clone"][m
+ [m
+ [migrations_directory][m
+[31m-dir = "C:\\Users\\98107\\desktop\\How2Money\\rust\\reach-cli\\reach\\src\\rchat\\migrations"[m
+[32m+[m[32mdir = "./src/rchat/migrations"[m
+[1mdiff --git a/src/rchat/migrations/.keep b/src/rchat/migrations/.keep[m
+[1mdeleted file mode 100644[m
+[1mindex e69de29..0000000[m
+[1mdiff --git a/src/rchat/migrations/00000000000000_diesel_initial_setup/down.sql b/src/rchat/migrations/00000000000000_diesel_initial_setup/down.sql[m
+[1mdeleted file mode 100644[m
+[1mindex a9f5260..0000000[m
+[1m--- a/src/rchat/migrations/00000000000000_diesel_initial_setup/down.sql[m
+[1m+++ /dev/null[m
+[36m@@ -1,6 +0,0 @@[m
+[31m--- This file was automatically created by Diesel to setup helper functions[m
+[31m--- and other internal bookkeeping. This file is safe to edit, any future[m
+[31m--- changes will be added to existing projects as new migrations.[m
+[31m-[m
+[31m-DROP FUNCTION IF EXISTS diesel_manage_updated_at(_tbl regclass);[m
+[31m-DROP FUNCTION IF EXISTS diesel_set_updated_at();[m
+[1mdiff --git a/src/rchat/migrations/00000000000000_diesel_initial_setup/up.sql b/src/rchat/migrations/00000000000000_diesel_initial_setup/up.sql[m
+[1mdeleted file mode 100644[m
+[1mindex d68895b..0000000[m
+[1m--- a/src/rchat/migrations/00000000000000_diesel_initial_setup/up.sql[m
+[1m+++ /dev/null[m
+[36m@@ -1,36 +0,0 @@[m
+[31m--- This file was automatically created by Diesel to setup helper functions[m
+[31m--- and other internal bookkeeping. This file is safe to edit, any future[m
+[31m--- changes will be added to existing projects as new migrations.[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m--- Sets up a trigger for the given table to automatically set a column called[m
+[31m--- `updated_at` whenever the row is modified (unless `updated_at` was included[m
+[31m--- in the modified columns)[m
+[31m---[m
+[31m--- # Example[m
+[31m---[m
+[31m--- ```sql[m
+[31m--- CREATE TABLE users (id SERIAL PRIMARY KEY, updated_at TIMESTAMP NOT NULL DEFAULT NOW());[m
+[31m---[m
+[31m--- SELECT diesel_manage_updated_at('users');[m
+[31m--- ```[m
+[31m-CREATE OR REPLACE FUNCTION diesel_manage_updated_at(_tbl regclass) RETURNS VOID AS $$[m
+[31m-BEGIN[m
+[31m-    EXECUTE format('CREATE TRIGGER set_updated_at BEFORE UPDATE ON %s[m
+[31m-                    FOR EACH ROW EXECUTE PROCEDURE diesel_set_updated_at()', _tbl);[m
+[31m-END;[m
+[31m-$$ LANGUAGE plpgsql;[m
+[31m-[m
+[31m-CREATE OR REPLACE FUNCTION diesel_set_updated_at() RETURNS trigger AS $$[m
+[31m-BEGIN[m
+[31m-    IF ([m
+[31m-        NEW IS DISTINCT FROM OLD AND[m
+[31m-        NEW.updated_at IS NOT DISTINCT FROM OLD.updated_at[m
+[31m-    ) THEN[m
+[31m-        NEW.updated_at := current_timestamp;[m
+[31m-    END IF;[m
+[31m-    RETURN NEW;[m
+[31m-END;[m
+[31m-$$ LANGUAGE plpgsql;[m
+[1mdiff --git a/src/rchat/migrations/2025-03-24-110714_rchat/down.sql b/src/rchat/migrations/2025-03-24-110714_rchat/down.sql[m
+[1mdeleted file mode 100644[m
+[1mindex 0b11b46..0000000[m
+[1m--- a/src/rchat/migrations/2025-03-24-110714_rchat/down.sql[m
+[1m+++ /dev/null[m
+[36m@@ -1,4 +0,0 @@[m
+[31m--- This file should undo anything in `up.sql`[m
+[31m-DROP TABLE IF EXISTS rchat.history;[m
+[31m-DROP TYPE IF EXISTS rchar.content CASCADE;[m
+[31m-DROP SCHEMA IF EXISTS rchat CASCADE;[m
+\ No newline at end of file[m
+[1mdiff --git a/src/rchat/migrations/2025-03-24-110714_rchat/up.sql b/src/rchat/migrations/2025-03-24-110714_rchat/up.sql[m
+[1mdeleted file mode 100644[m
+[1mindex 91e6930..0000000[m
+[1m--- a/src/rchat/migrations/2025-03-24-110714_rchat/up.sql[m
+[1m+++ /dev/null[m
+[36m@@ -1,19 +0,0 @@[m
+[31m--- Your SQL goes here[m
+[31m-CREATE SCHEMA IF NOT EXISTS rchat;[m
+[31m-[m
+[31m-CREATE TYPE rchat.content AS ([m
+[31m-    "user" TEXT,[m
+[31m-    "system" TEXT,[m
+[31m-    "tags" TEXT[] [m
+[31m-);[m
+[31m-[m
+[31m-CREATE TABLE rchat.history ([m
+[31m-    "session_id" INTEGER NOT NULL,[m
+[31m-    "message_id" SERIAL NOT NULL,[m
+[31m-    "level" INTEGER NOT NULL,[m
+[31m-    "content" rchat.content NOT NULL,[m
+[31m-    -- "tags" TEXT[] NOT NULL,[m
+[31m-    PRIMARY KEY ("session_id", "message_id", "level")[m
+[31m-);[m
+[31m-[m
+[31m-[m
