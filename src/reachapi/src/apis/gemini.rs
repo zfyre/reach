@@ -78,23 +78,15 @@ pub async fn gemini_query_stream(gemini_api_key: &str, query: &str, stream: bool
             match serde_json::from_str::<GenerateContentResponse>(json) {
 
                 Ok(response) => {
-                    println!("Response: {:?}", response);
                     match &response.candidates[0].finish_reason {
-                            Some(reason) => {
-                                if matches!(reason, FinishReason::Stop) {
-                                    break;
+                        Some(reason) => {
+                            if matches!(reason, FinishReason::Stop) {
+                                render_content(&response).await;
+                                break;
                             }
                         },
                         None => {
-                            let tokens = response.candidates[0].content.parts[0].text
-                            .trim()
-                            .trim_start_matches("\"")
-                            .trim_start_matches("\\")
-                            .trim_end_matches("\"")
-                            .trim_end_matches("\\");
-                        
-                        print!("{}", tokens);
-                            tokio::time::sleep(tokio::time::Duration::from_millis(15)).await;
+                            render_content(&response).await;
                         }
                     };
                 },
@@ -119,6 +111,22 @@ pub async fn gemini_query_stream(gemini_api_key: &str, query: &str, stream: bool
     // There is some metadata in the output as well!
 }
 
+async fn render_content(response: &GenerateContentResponse) {
+    let tokens = response.candidates[0].content.parts[0].text
+    .trim()
+    .trim_start_matches("\"")
+    .trim_start_matches("\\")
+    .trim_end_matches("\"")
+    .trim_end_matches("\\");
+
+    print!("{}", tokens);
+    if let Some(metadata) = &response.usage_metadata {
+        if metadata.candidates_token_count > 0 {
+            println!("\nToken count: {}", metadata.candidates_token_count);
+        }
+    }
+    tokio::time::sleep(tokio::time::Duration::from_millis(3)).await;
+}
 
 /*
 Things to look at:
@@ -145,7 +153,7 @@ mod tests{
         let api_config: std::collections::HashMap<String, String> = ApiConfig::read_config()?.into_iter().collect();
         let gemini_api_key = api_config.get(&ApiKeys::Gemini.as_str()).expect("Gemini API key is not available");
         
-        gemini_query_stream(gemini_api_key, "Tell me about David Finchers's movies!", true).await?;
+        gemini_query_stream(gemini_api_key, "I want to know how to build an environment for Chip Placement like google circuit training does using opensource resource fro my RL training", true).await?;
         Ok(())
     }
 }
