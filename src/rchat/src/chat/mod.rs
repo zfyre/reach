@@ -1,8 +1,8 @@
 //########################################## EMITTING FOLLOWING MODULES ##########################################//
 
 pub mod chat;
-mod contexts;
-pub use contexts::ChatContext;
+mod context;
+pub use context::ChatContext;
 
 //############################################### EXTERNAL IMPORTS ###############################################//
 

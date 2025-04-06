@@ -13,6 +13,6 @@ fn main() {
         vec![],
     );
 
-    let history = create_history(connection, session_id, level, &content);
+    let history = create_history(connection, session_id, level, &content, &mut vec![]);
     println!("Saved history entry {:?}", history);
 }

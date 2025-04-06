@@ -1,5 +1,3 @@
-use crate::RchatError;
-
 use super::models::{Content, HistoryEntry, NewHistoryEntry};
 use diesel::prelude::*;
 use dotenvy::dotenv;
@@ -19,6 +17,7 @@ pub fn create_history(
     session_id: i32,
     level: i32,
     content: &Content,
+    level_entry_counts: &mut [usize],
 ) -> HistoryEntry {
     use super::schema::rchat::history;
 
@@ -28,11 +27,16 @@ pub fn create_history(
         content,
     };
 
-    diesel::insert_into(history::table)
+    let entry = diesel::insert_into(history::table)
         .values(&new_history)
         .returning(HistoryEntry::as_returning())
         .get_result(conn)
-        .expect("Error saving new history")
+        .expect("Error saving new history");
+    
+    // Increment the level entry count for the current level
+    level_entry_counts[level as usize] += 1;
+
+    entry
 
     /* If we want to just save the new entries without returning the added entries */
     // diesel::insert_into(history::table)
@@ -41,6 +45,7 @@ pub fn create_history(
     //     .expect("Error saving new history");
 }
 
+#[allow(dead_code)]
 fn create_histories(
     conn: &mut PgConnection,
     new_histories: &[NewHistoryEntry],
@@ -54,6 +59,7 @@ fn create_histories(
         .expect("Error saving new histories")
 }
 
+#[allow(dead_code)]
 fn get_history_by_key(
     conn: &mut PgConnection,
     sess_id: i32,
@@ -90,6 +96,7 @@ pub fn get_history_by_level(
     chat_hist
 }
 
+#[allow(dead_code)]
 fn get_history_by_session(
     conn: &mut PgConnection,
     sess_id: i32,
@@ -106,6 +113,7 @@ fn get_history_by_session(
     chat_hist
 }
 
+#[allow(dead_code)]
 fn update_history(
     conn: &mut PgConnection,
     sess_id: i32,
@@ -124,6 +132,7 @@ fn update_history(
     updated_history
 }
 
+#[allow(dead_code)]
 fn update_history_with_level(
     // Updates the level to level + 1
     conn: &mut PgConnection,

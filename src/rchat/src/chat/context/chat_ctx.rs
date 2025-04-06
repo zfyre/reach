@@ -1,72 +1,15 @@
+// ============================================================= //
+// ======================== ChatHistory ======================== //
+// ============================================================= //
+
 use super::{
-    Content, HistoryEntry, Message, RchatError, create_history, establish_connection, 
-    get_history_by_level, get_num_history_entries, delete_histories_by_level,
-    HashMap, ApiConfig, ApiKeys, gemini_query, RawOuts, ReachConfig, ReachConfigKeys
+    HistoryEntry, establish_connection, get_num_history_entries,
+    RchatError, get_history_by_level, Content, create_history,
+    delete_histories_by_level, HashMap, ApiConfig, ApiKeys,
+    gemini_query, RawOuts, ReachConfig, ReachConfigKeys
 };
 
-pub struct ChatContext {
-    session_id: i32,
-    history: ChatHistory,
-    // retrieved: Vec<Message>,
-    // other: Vec<Message>,
-    query: String,    // Current User Query
-    response: String, // LLM Response of Current Query
-}
-
-impl ChatContext {
-    pub fn new(session_id: i32, history_chunk_size: &[usize]) -> Self {
-        Self {
-            session_id,
-            history: ChatHistory::new(session_id, history_chunk_size),
-            // retrieved: vec![],
-            // other: vec![],
-            query: String::new(),
-            response: String::new(),
-        }
-    }
-    pub fn build(&mut self) -> Result<String, RchatError> {
-        // Get all the data into the current context
-        self.pull()?;
-
-        // Process the data
-        let ctx_str = format!(
-            r#"
-                Previous Messages:
-                {}
-            "#,
-            self.history.as_ctx()
-        );
-
-        // Return the context
-        return Ok(ctx_str);
-    }
-    pub fn populate(&mut self, msg: Message) {
-        match msg {
-            Message::UserMsg(query) => self.query = query,
-            Message::LlmMsg(response) => self.response = response,
-            _ => (),
-        }
-    }
-    pub async fn push(&mut self) -> Result<(), RchatError> {
-        // For Now only History Messages as Context
-        self.history.push(&self.query, &self.response).await?;
-
-        //TODO: push for knowledge and documents later!!
-
-        Ok(())
-    }
-    fn pull(&mut self) -> Result<(), RchatError> {
-        // For Now only History Messages as Context
-        self.history.pull()?;
-
-        //TODO: pull for knowledge and documents later!!
-
-        Ok(())
-    }
-}
-
-// ======================== ChatHistory ========================
-struct ChatHistory {
+pub struct ChatHistory {
     session_id: i32,
     chunk_size: Vec<usize>, // describes the chunk size at each level of summarization
     history: Vec<HistoryEntry>,
@@ -74,7 +17,7 @@ struct ChatHistory {
 }
 
 impl ChatHistory {
-    fn new(session_id: i32, chunk_size: &[usize]) -> Self {
+    pub fn new(session_id: i32, chunk_size: &[usize]) -> Self {
         Self {
             session_id,
             chunk_size: chunk_size.to_vec(),
@@ -96,7 +39,8 @@ impl ChatHistory {
             },
         }
     }
-    fn pull(&mut self) -> Result<(), RchatError> {
+
+    pub fn pull(&mut self) -> Result<(), RchatError> {
         // Pull the history from the database
         let connection = &mut establish_connection();
 
@@ -106,15 +50,18 @@ impl ChatHistory {
                 connection,
                 self.session_id,
                 lvl as i32,
-                *chunk_size
+                *chunk_size * 2 // Set's the maximum number of entries that can be pulled,
+                                            // sice we need to pull the data which has not been summarized yet! hence x2 
             );
+            println!("Pulled {} entries for level {}", entries.len(), lvl);
             self.history.extend(entries);
         }
 
         Ok(())
     }
 
-    async fn push(&mut self, query: &str, response: &str) -> Result<(), RchatError> {
+    pub async fn push(&mut self, query: &str, response: &str) -> Result<(), RchatError> {
+
         // Push the history to the database
         let connection = &mut establish_connection();
         let content = Content::new(query.to_owned(), response.to_owned(), vec![]);
@@ -123,25 +70,39 @@ impl ChatHistory {
             connection,
             self.session_id,
             0,
-            &content
+            &content,
+            &mut self.level_entry_counts,
         );
-        self.level_entry_counts[0] += 1;
+        // self.level_entry_counts[0] += 1;
 
         // Iterate over the levels except the last one & summarize the entries
-        for (lvl, &chunk_size) in self.chunk_size[..self.chunk_size.len() - 1]
+        for (lvl, &chunk_size) in self.chunk_size
             .iter()
             .enumerate()
         {
             if self.level_entry_counts[lvl] >= 2 * chunk_size {
-                let summarized_content = self.summarize_entries(lvl as i32).await?;
+
+                // Get the summarized content for the level wrt the chunk size & delete the previous entries
+                // TODO: Maybe `archive` the entries instead of deleting them
+                let summarized_content = self.summarize_and_delete_entries(lvl as i32).await?;
+
+                // Update the Level Entry Counts
+                self.level_entry_counts[lvl] -= chunk_size;
+
+                // Add the summarized content to the history
                 let _summarized_entry = create_history(
                     connection,
                     self.session_id,
                     (lvl as i32) + 1,
                     &summarized_content,
+                    &mut self.level_entry_counts,
                 );
+                // Increment the entry count for the next level
+                // self.level_entry_counts[lvl + 1] += 1;
             }
         }
+
+        println!("Level entry counts: {:?}", self.level_entry_counts);
 
         // eprintln!("Saved history entry {:?}", _entry);// TODO: Use Tracing library for logging
 
@@ -151,7 +112,7 @@ impl ChatHistory {
         Ok(())
     }
 
-    async fn summarize_entries(&self, lvl: i32) -> Result<Content, RchatError> {
+    async fn summarize_and_delete_entries(&self, lvl: i32) -> Result<Content, RchatError> {
         // Get the #chunk_size of entries for a given level
         let connection = &mut establish_connection();
         let entries = get_history_by_level(
@@ -246,7 +207,7 @@ impl ChatHistory {
     }
 
     /// Formats the Vec<HistoryEntry> into a String
-    fn as_ctx(&self) -> String {
+    pub fn as_ctx(&self) -> String {
         let mut ctx_str = String::new();
         for entry in self.history.iter().rev() {
             ctx_str.push_str(&format!(
@@ -261,7 +222,3 @@ impl ChatHistory {
         ctx_str
     }
 }
-
-// ======================== ChatKnowledge =======================
-
-// ======================== ChatDocuments ========================

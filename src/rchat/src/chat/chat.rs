@@ -35,6 +35,7 @@ impl<'life> Chat {
             "\x1b[36mStarting chat session {} ...\x1b[0m",
             self.session_id
         );
+        
         loop {
             // Get user input
             let (chat_code, query) = self.get_user_input()?;
@@ -46,13 +47,16 @@ impl<'life> Chat {
             let processed_query = self.process_prompt(query)?;
 
             match chat_code {
+                // Quit the Chat loop if user enters quit command
                 ChatCode::Quit => {
                     break;
                 }
+                // Handle commands like help, show, etc.
                 ChatCode::Command => {
                     todo!("Implement command handling");
                     // continue;
                 }
+                // Handle user input
                 ChatCode::UserInput => {
                     // Generate AI response
                     let llm_response = self.get_llm_response(processed_query).await?;
