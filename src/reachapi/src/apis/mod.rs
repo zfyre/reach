@@ -20,6 +20,8 @@ use crate::ReachApiError;
 use crate::ReachConfig;
 use crate::ReachConfigKeys;
 
+use crate::models::{GenerateContentResponse, FinishReason};
+
 //################################################ MEMBER IMPORTS ################################################//
 
 

@@ -6,6 +6,8 @@ mod config;
 pub use config::*;
 mod errors;
 pub use errors::*;
+mod models;
+pub use models::*;
 
 //############################################### EXTERNAL IMPORTS ###############################################//
 

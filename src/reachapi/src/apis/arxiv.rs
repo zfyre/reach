@@ -202,7 +202,7 @@ pub async fn arxive_search(
 }
 
 mod tests {
-    #[cfg(feature = "requires_config")]
+    #[cfg(all(feature = "debug", feature = "requires_config"))]
     #[tokio::test]
     async fn check_arxive_search() {
         let _res = crate::apis::arxive_search(Some("Diffusion Models"), "2")
