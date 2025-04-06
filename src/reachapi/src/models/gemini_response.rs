@@ -107,7 +107,7 @@ pub struct Content {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Part {
-    pub text: String,
+    pub text: String, // TODO: This is of differnt struture in Documentation, need to implement it later.
 }
 
 /// A collection of source attributions for a piece of content.
