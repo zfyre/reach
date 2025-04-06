@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use reachapi::{
     ApiConfig, ApiKeys, RawOuts, ReachConfig, ReachConfigKeys, gemini_query,
 };
+use log::debug;
 
 //############################################### INTERNAL IMPORTS ###############################################//
 

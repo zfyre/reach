@@ -6,7 +6,8 @@ use super::{
     HistoryEntry, establish_connection, get_num_history_entries,
     RchatError, get_history_by_level, Content, create_history,
     delete_histories_by_level, HashMap, ApiConfig, ApiKeys,
-    gemini_query, RawOuts, ReachConfig, ReachConfigKeys
+    gemini_query, RawOuts, ReachConfig, ReachConfigKeys,
+    debug,
 };
 
 pub struct ChatHistory {
@@ -53,7 +54,7 @@ impl ChatHistory {
                 *chunk_size * 2 // Set's the maximum number of entries that can be pulled,
                                             // sice we need to pull the data which has not been summarized yet! hence x2 
             );
-            println!("Pulled {} entries for level {}", entries.len(), lvl);
+            debug!("Pulled {} entries for level {}", entries.len(), lvl);
             self.history.extend(entries);
         }
 
@@ -102,7 +103,7 @@ impl ChatHistory {
             }
         }
 
-        println!("Level entry counts: {:?}", self.level_entry_counts);
+        debug!("Level entry counts: {:?}", self.level_entry_counts);
 
         // eprintln!("Saved history entry {:?}", _entry);// TODO: Use Tracing library for logging
 
