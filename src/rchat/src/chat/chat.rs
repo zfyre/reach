@@ -1,3 +1,5 @@
+use reachapi::gemini_query_stream;
+
 use super::{
     ApiConfig, ApiKeys, ChatContext, HashMap, Message, RawOuts, RchatError, ReachApiError,
     ReachConfig, ReachConfigKeys, Write, gemini_query, io,
@@ -147,7 +149,8 @@ impl<'life> Chat {
             .get(&ApiKeys::Gemini.as_str())
             .expect("Gemini API key is not available");
 
-        let mut response = gemini_query(&gemini_api_key, &query).await?;
+        // let mut response = gemini_query(&gemini_api_key, &query).await?;
+        let mut response = gemini_query_stream(&gemini_api_key, &query).await?;
 
         let response_str = match response.pop().unwrap() {
             RawOuts::RawGeminiOut(s) => s,
