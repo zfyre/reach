@@ -150,7 +150,7 @@ impl<'life> Chat {
             .expect("Gemini API key is not available");
 
         // let mut response = gemini_query(&gemini_api_key, &query).await?;
-        let mut response = gemini_query_stream(&gemini_api_key, &query).await?;
+        let mut response = gemini_query(&gemini_api_key, &query).await?;
 
         let response_str = match response.pop().unwrap() {
             RawOuts::RawGeminiOut(s) => s,
