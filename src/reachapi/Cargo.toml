@@ -15,6 +15,7 @@ clap = { version = "4.5.28", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1.0.219", features = ["derive"] }
 futures = "0.3.31"
+async-stream = "0.3.6"
 
 # futures-util = "0.3"
 # tokio-util = { version = "0.7", features = ["io"] }
